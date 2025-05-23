@@ -1,0 +1,66 @@
+# Compiled object files
+*.o
+*.obj
+*.slo
+*.lo
+*.obj.d
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Executables
+*.exe
+*.out
+*.app
+visitor_center_game # Assuming 'visitor_center_game' is your executable name
+
+# Debug files
+*.dSYM/
+*.suo
+*.pdb
+*.ilk
+
+# Build directories
+build/
+bin/
+obj/
+Debug/
+Release/
+cmake-build-*/
+.cache/
+
+# IDE-specific files
+.vscode/
+*.code-workspace
+.idea/
+*.project
+*.cproject
+*.launch
+*.creator
+*.creator.user
+*.cbp      # Code::Blocks project file
+*.layout   # Code::Blocks layout file
+*.DS_Store # macOS
+
+# Backup files
+*~
+*.bak
+*.swp
+*.swo
+
+# CPack files
+_CPack_Packages/
+
+# Doxygen
+Doxyfile.bak
+docs/html/
+docs/latex/
+
+# Other
+*.stackdump
