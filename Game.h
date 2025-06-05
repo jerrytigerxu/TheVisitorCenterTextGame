@@ -20,7 +20,6 @@ enum class GameState {
     EXPLORING_CENTER_INITIAL,       // Player explores first rooms, first Guide encounter
     PLAYER_HAS_SOME_MEANS,          // Player has found at least one "means to leave" item
     PLAYER_HAS_ALL_MEANS,           // Player has found all "means to leave" items
-    OPTIONAL_SURGICAL_ITEM_NOTICEABLE, // Surgical item can be found
     
     GUIDE_STAGES_ATTACK_PRELUDE,    // Guide initiates his plan (dialogue before "sounds")
     GUIDE_STAGES_ATTACK_SOUNDS,     // Horrific sounds heard
@@ -50,7 +49,7 @@ enum class GameState {
 class Game {
 public: 
     // The Game class owns all Room objects
-    std::vector<std::unique_pr<Room>> allRooms;
+    std::vector<std::unique_ptr<Room>> allRooms;
 
     // The Game class owns the Player object 
     Player player; 

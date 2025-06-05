@@ -34,6 +34,9 @@ public:
     void look() const; 
 
     // Add an exit to another room
+    void addExit(const std::string& direction, Room* room);
+
+    // Add an item to the room
     void addItem(std::unique_ptr<Item> item);
 
     // Remove an item from the room (e.g., when player picks it up)

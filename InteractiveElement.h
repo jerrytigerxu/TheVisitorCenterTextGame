@@ -1,3 +1,4 @@
+#ifndef INTERACTIVE_ELEMENT_H
 #define INTERACTIVE_ELEMENT_H
 
 #include <string>

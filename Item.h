@@ -7,9 +7,9 @@
 // Represents an item that can be found, picked up, and used by the player
 class Item {
 public: 
+    std::string id;
     std::string name;
     std::string description;
-    std::string id; 
 
     // Constructor 
     Item(std::string id, std::string name, std::string description);

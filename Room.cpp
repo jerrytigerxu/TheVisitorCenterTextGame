@@ -13,7 +13,7 @@ void Room::look() const {
     if (!items.empty()) {
         std::cout << "\nYou see here:" << std::endl;
         for (const auto& item : items) {
-            std::cout << "  - " << item->name << std::endl;
+            std::cout << "  - " << item->id << std::endl;
         }
 
     }

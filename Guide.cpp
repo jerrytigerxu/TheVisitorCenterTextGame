@@ -11,7 +11,7 @@ Guide::Guide(std::string name)
 void Guide::initializeDialogue() {
     // Command explanations (Help System)
     commandExplanations["general"] = "You can 'go <direction/place_id>', 'look', 'examine <object/item_id>', 'get <item_id>', 'inventory', 'talk to guide', 'use <item_id>', 'help <command>', or 'quit'.";
-    commandExplanations["go"] = "To move, type 'go' followed by a direction (e.g., 'go north') or a known place ID (e.g., 'go office').";
+    commandExplanations["go"] = "To move, type 'go' followed by an exit name (e.g., 'go north', 'go office', 'go enter-center'). Check 'look' for available exits.";
     commandExplanations["look"] = "Type 'look' to get a description of your current surroundings.";
     commandExplanations["examine"] = "Type 'examine' followed by the name or ID of an item or object you see (e.g., 'examine desk', 'examine gas_can').";
     commandExplanations["get"] = "Type 'get' followed by the ID of an item you see to pick it up (e.g., 'get gas_can').";
@@ -50,28 +50,29 @@ void Guide::initializeDialogue() {
 
 // Interact with the Guide
 void Guide::talk(GameState currentState) {
+    std::cout << "\n";
     std::cout << "\n--- " << name << " ---" << std::endl;
     if (isFeigningInjury) {
         std::cout << "(Groaning) The pain... please, hurry..." << std::endl;
         // Override normal dialogue if feigning injury
         auto it_dialogue = dialogueLines.find(GameState::GUIDE_FEIGNING_INJURY);
         if (it_dialogue != dialogueLines.end() && !it_dialogue->second.empty()) {
-            std::cout << it_dialogue->second[0] << std::endl;
+            std::cout << "\"" << it_dialogue->second[0] << "\"" << std::endl;
         }
         return;
     }
 
     auto it_dialogue = dialogueLines.find(currentState);
     if (it_dialogue != dialogueLines.end() && !it_dialogue->second.empty()) {
-        std::cout << it_dialogue->second[rand() % it_dialogue->second.size()] << std::endl;
+        std::cout << "\"" << it_dialogue->second[rand() % it_dialogue->second.size()] << "\"" << std::endl;
     } else {
         // Fallback dialogue
         switch(currentState) {
             case GameState::PLAYER_HAS_ALL_MEANS:
-                std::cout << "You have everything you need for the car. Are you ready to leave your worries behind?" << std::endl;
+                std::cout << "\"" << "You have everything you need for the car. Are you ready to leave your worries behind?" << "\"" << std::endl;
                 break;
             default:
-                std::cout << "Yes? Can I help you with something, or are you just... observing?" << std::endl;
+                std::cout << "\"" << "Yes? Can I help you with something, or are you just... observing?" << "\"" << std::endl;
                 break;
         }
     }
@@ -80,6 +81,7 @@ void Guide::talk(GameState currentState) {
 
 // Provide help
 void Guide::provideHelp(const std::string& commandTopic, GameState currentState) {
+    std::cout << "\n";
     std::cout << "\n--- " << name << " (Help) ---" << std::endl;
     auto it = commandExplanations.find(commandTopic);
     if (it != commandExplanations.end()) {
@@ -90,9 +92,9 @@ void Guide::provideHelp(const std::string& commandTopic, GameState currentState)
 
     // Add evolving help text based on GameState
     if (currentState == GameState::PLAYER_HAS_SOME_MEANS) {
-        std::cout << "Remember, what you 'get' should be what you truly need. Time is precious when loved ones wait." << std::endl;
-    } else if (currentState = GameState::PLAYER_RETURNS_GUIDE_UNHARMED_REVEAL) {
-        std::cout << "Help? Oh, I don't think you'll needing that much longer." << std::endl;
+        std::cout << "\"" << "Remember, what you 'get' should be what you truly need. Time is precious when loved ones wait." << "\"" << std::endl;
+    } else if (currentState == GameState::PLAYER_RETURNS_GUIDE_UNHARMED_REVEAL) {
+        std::cout << "\"" << "Help? Oh, I don't think you'll needing that much longer." << "\"" << std::endl;
     }
     std::cout << "------------------------------------------" << std::endl;
 

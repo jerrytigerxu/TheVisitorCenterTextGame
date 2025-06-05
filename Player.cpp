@@ -21,7 +21,7 @@ void Player::moveTo(Room* newLocation) {
 // Adds an item to the player's inventory
 void Player::pickUpItem(std::unique_ptr<Item> item) {
     if (item) {
-        std::cout << "You picked up the " << item->name << "." << std::endl;
+        std::cout << "You picked up the " << item->id << "." << std::endl;
         updateItemFlags(item->id, true);
         inventory.push_back(std::move(item));
     }
@@ -37,7 +37,7 @@ std::unique_ptr<Item> Player::dropItem(const std::string& itemId) {
     if (it != inventory.end()) {
         std::unique_ptr<Item> foundItem = std::move(*it);
         inventory.erase(it);
-        std::cout << "You dropped the " << foundItem->name << "." << std::endl;
+        std::cout << "You dropped the " << foundItem->id << "." << std::endl;
         updateItemFlags(foundItem->id, false);
         return foundItem;
     }
@@ -73,7 +73,7 @@ void Player::showInventory() const {
         std::cout << "\n--- Inventory ---" << std::endl;
         for (const auto& item : inventory) {
             if (item) {
-                std::cout << "  - " << item->name << " (" << item->id << ")" << std::endl;
+                std::cout << "  - " << item->id << std::endl;
             }
         }
         std::cout << "------------------------" << std::endl;

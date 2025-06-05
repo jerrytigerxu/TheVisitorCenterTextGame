@@ -1,36 +1,37 @@
-# Makefile for The Visitor Center Game (Alpha Phase) 
-
 # Compiler
 CXX = g++
-
 # Compiler flags
-CXXFLAGS = -std=c++11 -Wall -Wextra -g 
+# -std=c++17: Use C++17 standard
+# -Wall: Enable all warnings
+# -Wextra: Enable extra warnings
+# -g: Add debugging information
+CXXFLAGS = -std=c++17 -Wall -Wextra -g
+# Linker flags (none needed for this simple case yet)
+LDFLAGS =
 
-
-# Target executable name 
-TARGET = visitor-center
-
-# Source files 
-SRCS = main.cpp
-
-
-# Object files (derived from source files)
+# Source files
+SRCS = main.cpp Game.cpp Room.cpp Player.cpp Item.cpp Guide.cpp InteractiveElement.cpp
+# Object files (derived from SRCS)
 OBJS = $(SRCS:.cpp=.o)
+# Executable name
+TARGET = visitor_center_game
 
-# Default rule: build the target executable 
+# Default target: build the executable
 all: $(TARGET)
 
-# Rule to link the object files into the target executable
+# Rule to link the executable
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
-# Rule to compile a .cpp source file into a .o object file 
+# Rule to compile a .cpp file into a .o file
+# $< is the first prerequisite (the .cpp file)
+# $@ is the target (the .o file)
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Rule to clean up build artifacts
+# Clean up build files
 clean:
 	rm -f $(OBJS) $(TARGET)
 
-# Phony targets are targets that don't represent actual files 
+# Phony targets (targets that are not actual files)
 .PHONY: all clean
