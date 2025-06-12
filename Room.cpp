@@ -7,16 +7,21 @@ Room::Room(std::string id, std::string name, std::string description)
 
 // Displays room information
 void Room::look() const {
-    std::cout << "\n---" << name << " ---" << std::endl;
+    // std::cout << "\n==================================================================\n"; // Moved to moveTo for better context
+    std::cout << "\n--- " << name << " ---" << std::endl;
     std::cout << description << std::endl;
 
-    if (!items.empty()) {
-        std::cout << "\nYou see here:" << std::endl;
-        for (const auto& item : items) {
-            std::cout << "  - " << item->id << std::endl;
+    bool items_present = false;
+    for (const auto& item : items) {
+        if (item) { // Check if unique_ptr is not null
+            if(!items_present) {
+                 std::cout << "\nYou see here:" << std::endl;
+                 items_present = true;
+            }
+            std::cout << "  - " << item->id << " (" << item->name << ")" << std::endl;
         }
-
     }
+
 
     if (!interactive_elements.empty()) {
         std::cout << "\nAlso here:" << std::endl;
@@ -29,13 +34,13 @@ void Room::look() const {
         std::cout << "\nExits:" << std::endl;
         for (const auto& pair : exits) {
             std::cout << "  - " << pair.first;
-            // To show the name of the connected room: std::cout << " to " << pair.second->name;
+            // Optionally show connected room name: std::cout << " (to " << pair.second->name << ")";
             std::cout << std::endl;
         }
-
     } else {
         std::cout << "\nThere are no obvious exits." << std::endl;
     }
+    // std::cout << "==================================================================\n"; // Moved to be before prompt in run loop
 }
 
 // Add an exit to another room

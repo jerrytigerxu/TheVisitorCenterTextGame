@@ -14,7 +14,8 @@ Player::Player(Room* startLocation)
 void Player::moveTo(Room* newLocation) {
     currentLocation = newLocation;
     if (currentLocation) {
-        currentLocation->look();
+        std::cout << "\n==================================================================\n"; // Separator before room description
+        currentLocation->look(); // Display description of the new room
     }
 }
 
@@ -47,6 +48,14 @@ std::unique_ptr<Item> Player::dropItem(const std::string& itemId) {
 
 // Checks if the player has a specific item by its ID
 bool Player::hasItem(const std::string& itemId) const {
+    // Directly check the flags for key items for efficiency, then inventory for others.
+    if (itemId == "gas_can" && hasGasCan) return true;
+    if (itemId == "spare_tire" && hasSpareTire) return true;
+    if (itemId == "oil_fluid" && hasOilFluid) return true;
+    if (itemId == "surgical_item" && hasSurgicalDefensiveItem) return true;
+    if (itemId == "first_aid_kit" && hasFirstAidKit) return true;
+    
+    // Fallback to checking inventory vector if not a flagged item or flag logic is TBD for some items
     for (const auto& item_ptr : inventory) {
         if (item_ptr && item_ptr->id == itemId) {
             return true;

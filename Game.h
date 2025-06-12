@@ -17,13 +17,17 @@
 // GameState enum to manage distinct game phases and narrative progression
 enum class GameState {
     INTRO,                          // Initial game setup, player learns premise
-    EXPLORING_CENTER_INITIAL,       // Player explores first rooms, first Guide encounter
-    PLAYER_HAS_SOME_MEANS,          // Player has found at least one "means to leave" item
-    PLAYER_HAS_ALL_MEANS,           // Player has found all "means to leave" items
     
-    GUIDE_STAGES_ATTACK_PRELUDE,    // Guide initiates his plan (dialogue before "sounds")
-    GUIDE_STAGES_ATTACK_SOUNDS,     // Horrific sounds heard
-    GUIDE_FEIGNING_INJURY,          // Player finds Guide "injured"
+    AWAITING_TASK_1,                // Guide explains the first task (Cleaning the Memorial)
+    TASK_1_COMPLETE,                // Player completes it, first "threat" occurs
+    AWAITING_TASK_2,                // Guide explains the second task (Organizing the Archives)
+    TASK_2_COMPLETE,                // Player completes it, second "threat" occurs
+    AWAITING_TASK_3,                // Guide explains the third task (Repairing the Music Box)
+    TASK_3_COMPLETE_FALSE_HOPE,     // Player completes it, moment of calm before the turn
+    MENACING_TABLEAU,               // The plan fails, figures have been rearranged
+    AWAITING_TASK_4,                // Guide proposes the final, desperate vigil
+    VIGIL_MISTAKE,                  // The "accident" with the candle occurs
+    GUIDE_FACES_VENGEANCE,          // Guide flees, sounds of attack begin
     
     CHOICE_POINT_LEAVE_OR_HELP,     // Player must decide to leave or help Guide
     
@@ -67,6 +71,9 @@ public:
     void run();
 
 private:
+    // Flag to track if the surgical item has been spawned into the game world
+    bool surgicalItemSpawned;
+
     // Initializes game objects
     void setupGame();
     void setupRoomsAndExits();
