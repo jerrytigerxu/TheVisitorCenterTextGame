@@ -1,37 +1,72 @@
+# Makefile for The Visitor Center Text Game
+
+# -----------------
+# Configuration
+# -----------------
+
 # Compiler
 CXX = g++
-# Compiler flags
-# -std=c++17: Use C++17 standard
-# -Wall: Enable all warnings
-# -Wextra: Enable extra warnings
-# -g: Add debugging information
-CXXFLAGS = -std=c++17 -Wall -Wextra -g
-# Linker flags (none needed for this simple case yet)
-LDFLAGS =
 
-# Source files
-SRCS = main.cpp Game.cpp Room.cpp Player.cpp Item.cpp Guide.cpp InteractiveElement.cpp
-# Object files (derived from SRCS)
-OBJS = $(SRCS:.cpp=.o)
-# Executable name
+# Compiler flags: -std=c++17 for modern C++, -Wall for all warnings, -g for debugging symbols
+CXXFLAGS = -std=c++17 -Wall -g
+
+# Project directories
+SRC_DIR = src
+INCLUDE_DIR = include
+OBJ_DIR = obj
+
+# Name of the final executable
 TARGET = visitor_center_game
 
-# Default target: build the executable
+# -----------------
+# File Discovery
+# -----------------
+
+# Automatically find all .cpp files in the source directory
+SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+
+# Create a list of corresponding object files (.o) to be placed in the object directory
+OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
+
+# Add the include directory to the compiler's search path for headers
+CXXFLAGS += -I$(INCLUDE_DIR)
+
+# -----------------
+# Build Rules
+# -----------------
+
+# The default target, 'all', builds the final executable.
 all: $(TARGET)
 
-# Rule to link the executable
+# Rule to link the final executable from all the object files.
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
+	@echo "Linking executable..."
+	$(CXX) $(CXXFLAGS) -o $@ $^
+	@echo "Build complete. Run with ./$(TARGET)"
 
-# Rule to compile a .cpp file into a .o file
-# $< is the first prerequisite (the .cpp file)
-# $@ is the target (the .o file)
-%.o: %.cpp
+# This is a master dependency rule. 
+$(OBJS): | $(OBJ_DIR)
+
+# This is the pattern rule for compilation. 
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@echo "Compiling $<..."
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Clean up build files
-clean:
-	rm -f $(OBJS) $(TARGET)
+# This rule tells make HOW to create the object directory. 
+$(OBJ_DIR):
+	@echo "Creating object directory..."
+	mkdir -p $(OBJ_DIR)
 
-# Phony targets (targets that are not actual files)
+# -----------------
+# Utility Rules
+# -----------------
+
+# Rule to clean up all compiled files.
+clean:
+	@echo "Cleaning project..."
+	rm -rf $(OBJ_DIR)
+	rm -f $(TARGET)
+	@echo "Clean complete."
+
+# Phony targets are not actual files. They are just names for commands.
 .PHONY: all clean
