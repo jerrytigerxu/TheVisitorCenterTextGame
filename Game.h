@@ -7,6 +7,8 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <thread>
+#include <chrono>
 
 #include "Room.h"
 #include "Player.h"
@@ -22,7 +24,7 @@ enum class GameState {
     TASK_1_COMPLETE,                // Player completes it, first "threat" occurs
     AWAITING_TASK_2,                // Guide explains the second task (Organizing the Archives)
     TASK_2_COMPLETE,                // Player completes it, second "threat" occurs
-    AWAITING_TASK_3,                // Guide explains the third task (Repairing the Music Box)
+    AWAITING_TASK_3,                // Guide explains the third task (Trimming the Memorial Garden)
     TASK_3_COMPLETE_FALSE_HOPE,     // Player completes it, moment of calm before the turn
     MENACING_TABLEAU,               // The plan fails, figures have been rearranged
     AWAITING_TASK_4,                // Guide proposes the final, desperate vigil
@@ -73,6 +75,12 @@ public:
 private:
     // Flag to track if the surgical item has been spawned into the game world
     bool surgicalItemSpawned;
+
+    // --- Cutscene and Typing Effect members ---
+    bool isInCutscene;
+    void typeOut(const std::string& text, bool isDialogue = false);
+    void enterCutscene();
+    void exitCutscene();
 
     // Initializes game objects
     void setupGame();

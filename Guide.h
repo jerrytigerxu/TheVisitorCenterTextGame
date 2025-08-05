@@ -24,8 +24,8 @@ public:
     // Constructor
     Guide(std::string name = "The Visitor Guide");
 
-    // Interact with the Guide (talk)
-    void talk(GameState currentState);
+    // Interact with the Guide (returns the dialogue string instead of printing it)
+   std::string getDialogue(GameState currentState) const; 
 
     // Provide help based on player's query or general help
     void provideHelp(const std::string& commandTopic = "general", GameState currentState = static_cast<GameState>(0));

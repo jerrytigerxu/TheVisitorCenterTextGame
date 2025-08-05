@@ -44,29 +44,18 @@ void Guide::initializeDialogue() {
 }
 
 // Interact with the Guide
-void Guide::talk(GameState currentState) {
-    std::cout << "\n";
-    std::cout << "\n--- " << name << " ---" << std::endl;
-    
-
+std::string Guide::getDialogue(GameState currentState) const {
     auto it_dialogue = dialogueLines.find(currentState);
     if (it_dialogue != dialogueLines.end() && !it_dialogue->second.empty()) {
-        // Pick a random line from the available options for this state
-        std::cout << "\"" << it_dialogue->second[rand() % it_dialogue->second.size()] << "\"" << std::endl;
-        
-        if (currentState == GameState::INTRO) {
-            std::cout << "\n(A thought crosses your mind: How could he know about my mother? This man is clearly unwell... but he's my only hope.)" << std::endl;
-        }
-
+        return it_dialogue->second[rand() % it_dialogue->second.size()];
     } else {
-        // Fallback dialogue
-        std::cout << "\"" << "He just stares at you, a look of profound sorrow on his face." << "\"" << std::endl;
+        return "He just stares at you, a look of profound sorrow on his face.";
+
     }
-    std::cout << "--------------------------------" << std::endl;
 }
 
 // Provide help
-void Guide::provideHelp(const std::string& commandTopic, GameState currentState) {
+void Guide::provideHelp(const std::string& commandTopic, [[maybe_unused]] GameState currentState) {
     std::cout << "\n";
     std::cout << "\n--- " << name << " (Help) ---" << std::endl;
     auto it = commandExplanations.find(commandTopic);
@@ -75,9 +64,6 @@ void Guide::provideHelp(const std::string& commandTopic, GameState currentState)
     } else {
         std::cout << commandExplanations["general"] << std::endl;
     }
-
-    // *** FIXED: Removed check for obsolete state 'PLAYER_HAS_SOME_MEANS' ***
-    // We can add new context-sensitive help for tasks later.
     std::cout << "------------------------------------------" << std::endl;
 
 }

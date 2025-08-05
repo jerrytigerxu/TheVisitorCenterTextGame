@@ -124,92 +124,134 @@ Room* Game::findRoomById(const std::string& roomId) {
     return nullptr;
 }
 
+void Game::typeOut(const std::string& text, bool isDialogue) {
+    if (isDialogue) std::cout << "\"";
+    for (const char c : text) {
+        std::cout << c << std::flush;
+        std::this_thread::sleep_for(std::chrono::milliseconds(35));
+    }
+    if (isDialogue) std::cout << "\"";
+    std::cout << std::endl;
+}
+
+void Game::enterCutscene() {
+    isInCutscene = true;
+    std::cout << "\n";
+}
+
+void Game::exitCutscene() {
+    isInCutscene = false;
+}
+
 void Game::displayIntro() {
+    enterCutscene();
     std::cout << "----------------------------------------------------------" << std::endl;
-    std::cout << "           THE VISITOR CENTER (Beta Build A)             " << std::endl;
+    typeOut("           THE VISITOR CENTER");
     std::cout << "----------------------------------------------------------" << std::endl;
-    std::cout << "Your heart pounds with anxiety. Racing to your gravely ill mother, your chosen shortcut "
-              << "has led to disaster. Your car sputters and dies near the Oakhaven Visitor Center – "
-              << "an isolated, dilapidated structure exuding an unnerving stillness." << std::endl;
-    std::cout << "Miles from anywhere, with a failing phone signal, the Center is your only hope." << std::endl;
-    // Player's location is already set and looked at in setupGame.
+    
+    typeOut("Your heart pounds with anxiety. Racing to your gravely ill mother, your chosen shortcut has led to disaster.");
+    typeOut("Your car sputters and dies near the Oakhaven Visitor Center – an isolated, dilapidated structure exuding an unnerving stillness.");
+    typeOut("Miles from anywhere, with a failing phone signal, the Center is your only hope.");
+    exitCutscene();
+    
+    // Player's location look() is now called from moveTo, which is called from setupGame
+    if (player.currentLocation) {
+        player.currentLocation->look();
+    }
     transitionToState(GameState::AWAITING_TASK_1);
 }
 
 void Game::transitionToState(GameState newState) {
-    // Optional: Add logic here if certain transitions trigger immediate effects or messages
-    // std::cout << "[Debug] Transitioning from " << static_cast<int>(currentGameState) << " to " << static_cast<int>(newState) << std::endl;
     currentGameState = newState;
 
     // Specific actions on entering a new state
     switch (newState) {
         case GameState::GUIDE_FACES_VENGEANCE:
-            guide.talk(currentGameState); // Guide screams his "desecrated" line
-            // After this, sounds of an attack should begin. This will lead to the choice.
-            // For now, we transition directly to the choice point.
+            enterCutscene();
+            typeOut("--- " + guide.name + " ---", false);
+            typeOut(guide.getDialogue(currentGameState), true);
+            exitCutscene();
             transitionToState(GameState::CHOICE_POINT_LEAVE_OR_HELP);
             break;
+
         case GameState::CHOICE_POINT_LEAVE_OR_HELP:
-             std::cout << "\nWith the sounds of the attack echoing behind you, your mind races. Your mother... waiting." << std::endl;
-             std::cout << "But you caused this. You doomed him. What kind of person would you be if you just left?" << std::endl;
-             std::cout << "Your choices: 'leave' or 'help'." << std::endl;
+            enterCutscene();
+            typeOut("\nWith the sounds of the attack echoing behind you, your mind races. Your mother... waiting.");
+            typeOut("But you caused this. You doomed him. What kind of person would you be if you just left?");
+            typeOut("Your choices: 'leave' or 'help'.");
+            exitCutscene();
             break;
+
         case GameState::PLAYER_RETURNS_GUIDE_UNHARMED_REVEAL:
-            guide.setFeigningInjury(false); // No longer needed but good practice
-            guide.talk(currentGameState); 
+            enterCutscene();
+            guide.setFeigningInjury(false); 
+            typeOut("--- " + guide.name + " ---", false);
+            typeOut(guide.getDialogue(currentGameState), true);
+            exitCutscene();
             transitionToState(GameState::FIGURES_REVEALED);
             break;
+
         case GameState::FIGURES_REVEALED:
+            enterCutscene();
             if (player.currentLocation) {
                 InteractiveElement* figures = player.currentLocation->getInteractiveElement("figures");
                 if (figures) figures->reveal();
             }
-            guide.talk(currentGameState); 
+            typeOut("--- " + guide.name + " ---", false);
+            typeOut(guide.getDialogue(currentGameState), true);
+            exitCutscene();
             transitionToState(GameState::FINAL_CONFRONTATION_IMMINENT);
             break;
+
         case GameState::FINAL_CONFRONTATION_IMMINENT:
-             guide.talk(currentGameState); 
-             std::cout << "\nHe lunges towards you!" << std::endl;
+            enterCutscene();
+            typeOut("--- " + guide.name + " ---", false);
+            typeOut(guide.getDialogue(currentGameState), true);
+            typeOut("\nHe lunges towards you!");
+            exitCutscene();
             break;
+
         case GameState::ENDING_NOT_WORTHY:
         case GameState::ENDING_GOOD_ESCAPED:
         case GameState::ENDING_BAD_VICTIM:
             displayEnding(currentGameState);
             break;
         default:
-            // For states like AWAITING_TASK_1, the Guide's dialogue is triggered by `talk to guide`,
-            // so no special transition effect is needed here.
             break;
     }
 }
 
 void Game::displayEnding(GameState endingType) {
+    enterCutscene();
     switch (endingType) {
         case GameState::ENDING_NOT_WORTHY:
-            std::cout << "\n--- ENDING 1: Not Worthy ---" << std::endl;
-            std::cout << "The image of your mother, pale and still in a hospital bed, burned in your mind. Guilt was a hot stone in your gut, but the primal need to reach your family was a tidal wave." << std::endl;
-            std::cout << "As you flee the Visitor Center, the Guide's voice, no longer weak, echoes from within:" << std::endl;
-            std::cout << guide.name << ": \"Go then... Flee back to your... decaying world, and your precious attachments. Some souls... simply aren't worth preserving. You wouldn't have appreciated the artistry anyway.\"" << std::endl;
-            std::cout << "You escape, the words a brand, but the drive to the hospital consuming all else." << std::endl;
+            typeOut("\n--- ENDING 1: The Unworthy ---");
+            typeOut("The image of your mother, pale and still in a hospital bed, burned in your mind. Guilt was a hot stone in your gut, but the primal need to reach your family was a tidal wave.");
+            typeOut("As you flee the Visitor Center, the Guide's voice, no longer weak, echoes from within:");
+            typeOut("--- " + guide.name + " ---", false);
+            typeOut(guide.getDialogue(currentGameState), true);
+            typeOut("You escape, the words a brand, but the drive to the hospital consuming all else.");
             break;
         case GameState::ENDING_GOOD_ESCAPED:
-            std::cout << "\n--- ENDING 2: Good Ending - Escaped ---" << std::endl;
-            std::cout << "With a desperate surge of adrenaline, you use the " << (player.getItemFromInventory("surgical_item") ? player.getItemFromInventory("surgical_item")->id : "item") << "!" << std::endl;
-            std::cout << "The Guide recoils, momentarily stunned, giving you the chance you need." << std::endl;
-            std::cout << "You scramble past him and out of the horrific visitor center, not daring to look back." << std::endl;
-            std::cout << "Forever scarred, you carry the weight of Oakhaven, but also a desperate hope as you race towards your mother." << std::endl;
+            typeOut("\n--- ENDING 2: The Escape ---");
+            typeOut("With a desperate surge of adrenaline, you use the surgical instrument!");
+            typeOut("The Guide recoils, momentarily stunned, giving you the chance you need.");
+            typeOut("You scramble past him and out of the horrific visitor center, not daring to look back.");
+            typeOut("Forever scarred, you carry the weight of Oakhaven, but also a desperate hope as you race towards your mother.");
             break;
         case GameState::ENDING_BAD_VICTIM:
-            std::cout << "\n--- ENDING 3: Bad Ending - Victim ---" << std::endl;
-            std::cout << "You try to react, but the Guide is too quick, his earlier frailty a complete deception." << std::endl;
-            std::cout << "His smile is the last thing you see." << std::endl;
-            std::cout << guide.name << ": \"Welcome,\" he whispers, \"to eternity. Such purity... preserved.\"" << std::endl;
-            std::cout << "The Oakhaven Visitor Center had claimed another exhibit. Far away, a hospital vigil continued, unaware." << std::endl;
+            typeOut("\n--- ENDING 3: The Collection ---");
+            typeOut("You try to react, but the Guide is too quick, his earlier frailty a complete deception.");
+            typeOut("His smile is the last thing you see.");
+            typeOut("--- " + guide.name + " ---", false);
+            typeOut(guide.getDialogue(currentGameState), true);
+            typeOut("The Oakhaven Visitor Center had claimed another exhibit. Far away, a hospital vigil continued, unaware.");
             break;
         default:
-            std::cout << "Error: Unknown ending type." << std::endl;
+            typeOut("Error: Unknown ending type.");
             break;
     }
+    exitCutscene();
     gameOver = true;
     currentGameState = GameState::GAME_OVER;
 }
@@ -222,46 +264,34 @@ void Game::run() {
     while (!gameOver) {
         if (currentGameState == GameState::GAME_OVER) break;
 
-        std::cout << "\n> ";
-        if (!std::getline(std::cin, inputLine)) {
-            if (std::cin.eof()) {
-                std::cout << "EOF detected. Quitting." << std::endl;
-                break;
-            }
-            std::cerr << "Input error. Quitting." << std::endl;
-            break;
-        }
-        if (inputLine.empty()) continue;
-
-        processInput(inputLine);
-        updateGame();
-
-        if (!gameOver) {
-            std::cout << "\n==================================================================\n\n";
-        }
-
-        if (!gameOver) {
+        if (!isInCutscene) {
+            std::cout << "\n";
             if (player.currentLocation) {
                 std::cout << "[" << player.currentLocation->name <<"] > ";
             } else {
                 std::cout << "[Unknown location] > ";
             }
         }
+        
+        if (!std::getline(std::cin, inputLine)) {
+            if (std::cin.eof()) break;
+            std::cerr << "Input error. Quitting." << std::endl;
+            break;
+        }
 
+        if (isInCutscene || inputLine.empty()) continue;
+
+        processInput(inputLine);
+        updateGame();
     }
 
-    if (currentGameState != GameState::GAME_OVER) {
-        std::cout << "\n--- Game ended abruptly. ---" << std::endl;
-    }
     std::cout << "\n--- Thank you for playing The Visitor Center! ---" << std::endl;
 }
 
 std::vector<std::string> Game::parseCommand(const std::string& rawInput) {
     std::vector<std::string> words;
     std::string input = rawInput;
-    // Convert to lowercase
     std::transform(input.begin(), input.end(), input.begin(), ::tolower);
-
     std::stringstream ss(input);
     std::string word;
     while (ss >> word) {
@@ -270,34 +300,33 @@ std::vector<std::string> Game::parseCommand(const std::string& rawInput) {
     return words;
 }
 
-// Processes player input 
 void Game::processInput(const std::string& rawInput) {
     if (gameOver) return;
 
     std::vector<std::string> words = parseCommand(rawInput);
-    if (words.empty()) {
-        return;
-    }
+    if (words.empty()) return;
 
     std::string command = words[0];
+    std::cout << "\n==================================================================\n";
 
-    // Handle single-action final confrontation
     if (currentGameState == GameState::FINAL_CONFRONTATION_IMMINENT) {
         if (command == "use" && words.size() > 1 && words[1] == "surgical_item") {
             if (player.hasItem("surgical_item")) {
                 transitionToState(GameState::ENDING_GOOD_ESCAPED);
             } else {
-                std::cout << "You don't have that!" << std::endl;
+                enterCutscene();
+                typeOut("You don't have that!");
+                exitCutscene();
                 transitionToState(GameState::ENDING_BAD_VICTIM);
             }
         } else {
-            std::cout << "You panic. Your action is ineffective as the Guide overwhelms you." << std::endl;
+            enterCutscene();
+            typeOut("You panic. Your action is ineffective as the Guide overwhelms you.");
+            exitCutscene();
             transitionToState(GameState::ENDING_BAD_VICTIM);
         }
-        return; // Stop further processing
+        return;
     }
-
-    // General commands
 
     if (command == "quit") {
         std::cout << "Exiting game." << std::endl;
@@ -319,8 +348,12 @@ void Game::processInput(const std::string& rawInput) {
         handleHelpCommand(words);
     } else if (command == "use") {
         handleUseCommand(words);
-    } else if (command == "choose" && (currentGameState == GameState::CHOICE_POINT_LEAVE_OR_HELP)) {
-        handleChooseCommand(words);
+    } else if (command == "leave" || command == "help") { // Simplified choice commands
+        if (currentGameState == GameState::CHOICE_POINT_LEAVE_OR_HELP) {
+             handleChooseCommand({command}); // Pass the command directly
+        } else {
+            std::cout << "You can't do that right now." << std::endl;
+        }
     }
     // Developer / Debug commands
     else if (command == "dbg_setstate" && words.size() > 1) { // Debug command
@@ -332,9 +365,10 @@ void Game::processInput(const std::string& rawInput) {
             std::cout << "[Debug] Invalid state value." << std::endl;
         }
     } else if (command == "dbg_playeritems"){ // Debug command
-        player.hasGasCan = player.hasSpareTire = player.hasOilFluid = true;
-        std::cout << "[Debug] Player has all means to leave." << std::endl;
-        if (!player.hasItem("surgical_item")) { // Give surgical item if not present
+        player.pickUpItem(std::make_unique<Item>("gas_can", "Gas Can (Debug)", "Debug Gas"));
+        player.pickUpItem(std::make_unique<Item>("spare_tire", "Spare Tire (Debug)", "Debug Tire"));
+        player.pickUpItem(std::make_unique<Item>("oil_fluid", "Oil Fluid (Debug)", "Debug Oil"));
+        if (!player.hasItem("surgical_item")) {
             player.pickUpItem(std::make_unique<Item>("surgical_item", "Surgical Instrument (Debug)", "A debug surgical tool."));
         }
          if (!player.hasItem("first_aid_kit")) { 
@@ -357,7 +391,7 @@ void Game::handleGoCommand(const std::vector<std::string>& words) {
     if (player.currentLocation && player.currentLocation->exits.count(destination_key)) {
         Room* nextRoom = player.currentLocation->exits[destination_key];
         player.moveTo(nextRoom);
-        // *** FIXED: Removed obsolete logic referencing old states ***
+        
         if (nextRoom && nextRoom->id == "main_hall" && currentGameState == GameState::PLAYER_FOUND_MEDKIT) {
              transitionToState(GameState::PLAYER_RETURNS_GUIDE_UNHARMED_REVEAL);
         }
@@ -383,42 +417,30 @@ void Game::handleExamineCommand(const std::vector<std::string>& words) {
         return;
     }
     std::string targetName = words[1];
-    // If command was "examine the desk", targetName might be "the". Then actual target is words[2]
-     if (targetName == "the" && words.size() > 2) {
+    if (targetName == "the" && words.size() > 2) {
         targetName = words[2];
     }
 
-
-    // Check room's items
     if (player.currentLocation) {
         Item* roomItem = player.currentLocation->getItem(targetName);
-        if (roomItem) {
-            roomItem->examine();
-            return;
-        }
-        // Check room's interactive elements
+        if (roomItem) { roomItem->examine(); return; }
+        
         InteractiveElement* element = player.currentLocation->getInteractiveElement(targetName);
         if (element) {
             element->examine();
-            // Special case: examining guide
-            if (element->name == "guide_himself") {
-                 guide.talk(currentGameState); // Guide might say something when examined
-            }
             return;
         }
     }
-    // Check player's inventory
+    
     Item* invItem = player.getItemFromInventory(targetName);
-    if (invItem) {
-        invItem->examine();
-        return;
-    }
-    // Check if examining the Guide directly by name
-    if (targetName == "guide" || targetName == guide.name) { // guide.name might need tolower
-         InteractiveElement* guideElement = player.currentLocation->getInteractiveElement("guide_himself");
-         if(guideElement) guideElement->examine();
-         else std::cout << "The Guide is present. " << guide.name << " watches you." << std::endl;
-         guide.talk(currentGameState);
+    if (invItem) { invItem->examine(); return; }
+
+    if (targetName == "guide") {
+        if (player.currentLocation->getInteractiveElement("guide")) {
+            player.currentLocation->getInteractiveElement("guide")->examine();
+        } else {
+            std::cout << "The Guide isn't here." << std::endl;
+        }
         return;
     }
 
@@ -430,24 +452,24 @@ void Game::handleGetCommand(const std::vector<std::string>& words) {
     std::string itemId = words[1];
 
     if (player.currentLocation && player.currentLocation->getItem(itemId)) {
-        // *** FIXED: Removed all state transition logic from getting items. ***
-        // This will be handled by `use` commands for tasks now.
         std::unique_ptr<Item> item = player.currentLocation->removeItem(itemId);
         
-        // Special logic for surgical item spawning
         if (item->id == "oil_fluid" && !surgicalItemSpawned) {
              Room* officeRoom = findRoomById("office");
              if(officeRoom) {
                 officeRoom->addItem(std::make_unique<Item>("surgical_item", "Surgical Instrument", "An antique surgical instrument, surprisingly well-maintained. It was tucked away near where the oil was. Almost... waiting."));
                 surgicalItemSpawned = true;
-                std::cout << "\nAs you pick up the oil, a glint of metal from a shadowy corner catches your eye." << std::endl;
+                enterCutscene();
+                typeOut("As you pick up the oil, a glint of metal from a shadowy corner catches your eye.");
+                exitCutscene();
              }
         }
         
-        // Logic for returning to guide with medkit
         if(item->id == "first_aid_kit" && currentGameState == GameState::CHOICE_POINT_LEAVE_OR_HELP) {
             transitionToState(GameState::PLAYER_FOUND_MEDKIT);
-             std::cout << "You have the First Aid Kit. You should return to the Guide in the main hall." << std::endl;
+            enterCutscene();
+            typeOut("You have the First Aid Kit. You should return to the Guide in the main hall.");
+            exitCutscene();
         }
 
         player.pickUpItem(std::move(item));
@@ -461,15 +483,21 @@ void Game::handleInventoryCommand([[maybe_unused]] const std::vector<std::string
 }
 
 void Game::handleTalkCommand(const std::vector<std::string>& words) {
-    if (words.size() > 1 && (words[1] == "to" || words[1] == "with") && words.size() > 2 && words[2] == "guide") {
-        if (player.currentLocation && player.currentLocation->id == "main_hall") { // Or wherever guide is
-            guide.talk(currentGameState);
-        } else {
-            std::cout << "The Guide is not here." << std::endl;
-        }
-    } else if (words.size() > 1 && words[1] == "guide") {
-         if (player.currentLocation && player.currentLocation->id == "main_hall") {
-            guide.talk(currentGameState);
+    if ((words.size() > 2 && (words[1] == "to" || words[1] == "with") && words[2] == "guide") ||
+        (words.size() > 1 && words[1] == "guide")) {
+        if (player.currentLocation && player.currentLocation->getInteractiveElement("guide")) {
+            enterCutscene();
+            typeOut("--- " + guide.name + " ---", false);
+            std::string dialogue = guide.getDialogue(currentGameState);
+            typeOut(dialogue, true);
+            
+            // Special player thought for intro
+            if (currentGameState == GameState::AWAITING_TASK_1) {
+                typeOut("(A thought crosses your mind: This man is clearly unwell... but he's my only hope. I'll play along.)");
+            }
+
+            exitCutscene();
+
         } else {
             std::cout << "The Guide is not here." << std::endl;
         }
@@ -496,10 +524,18 @@ void Game::handleUseCommand(const std::vector<std::string>& words) {
         return;
     }
     
-    // *** NOTE: This is where task completion logic will go. ***
-    // For example: `if (itemId == "cloth" && currentGameState == AWAITING_TASK_1)`
-    // For now, it will just give a generic message.
-    
+    // --- DEMO of how cutscenes will work for tasks ---
+    if (itemId == "gas_can" && currentGameState == GameState::AWAITING_TASK_1) {
+        transitionToState(GameState::TASK_1_COMPLETE);
+        enterCutscene();
+        typeOut("This isn't how it works. The Guide asked you to perform an act of respect, not just use an item.");
+        typeOut("Perhaps you should 'examine' the 'figures' to know what to do.");
+        exitCutscene();
+        // Set state back for demonstration purposes
+        transitionToState(GameState::AWAITING_TASK_1);
+        return;
+    }
+
     std::cout << "You try to use the " << itemId << ", but nothing specific happens." << std::endl;
 }
 
@@ -508,17 +544,20 @@ void Game::handleChooseCommand(const std::vector<std::string>& words) {
         std::cout << "There's no specific choice to make right now with that command." << std::endl;
         return;
     }
-    if (words.size() < 2) {
-        std::cout << "Choose what? ('choose leave' or 'choose help')" << std::endl;
+    if (words.empty()) {
+        std::cout << "Choose what? ('leave' or 'help')" << std::endl;
         return;
     }
-    std::string choice = words[1];
+    std::string choice = words[0];
     if (choice == "leave") {
         transitionToState(GameState::ENDING_NOT_WORTHY);
     } else if (choice == "help") {
-        std::cout << "You decide to help the Guide. He weakly gestures towards the office, muttering about a First Aid Kit." << std::endl;
+        enterCutscene();
+        typeOut("You decide to help the Guide. He weakly gestures towards the office, muttering about a First Aid Kit.");
+        exitCutscene();
+        transitionToState(GameState::PLAYER_CHOOSES_HELP_SEARCH_MEDKIT);
     } else {
-        std::cout << "That's not a valid choice here. Try 'choose leave' or 'choose help'." << std::endl;
+        std::cout << "That's not a valid choice here. Try 'leave' or 'help'." << std::endl;
     }
 }
 
