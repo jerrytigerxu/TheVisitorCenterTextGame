@@ -20,7 +20,7 @@ void Guide::initializeDialogue() {
     commandExplanations["use"] = "Type 'use' followed by the ID of an item in your inventory (e.g., 'use first_aid_kit').";
 
     // Initial dialogue when player first meets the Guide.
-    dialogueLines[GameState::INTRO].push_back("Oh! A visitor... I... I'm sorry for the state of things. The air has been so heavy lately. Since you've arrived... the spirits... they feel your presence, and they're not pleased.");
+    dialogueLines[GameState::FIRST_ENCOUNTER_WITH_GUIDE].push_back("Oh! A visitor... I... I'm sorry for the state of things. The air has been so heavy lately. Since you've arrived... the spirits... they feel your presence, and they're not pleased. They are keeping me from the supply rooms... where the parts you need for your car are stored. But... there may be a way. There are three acts of respect we must show them. If we can prove you honor their memory, I believe they will relent.");
 
     // Dialogue for Task 1
     dialogueLines[GameState::AWAITING_TASK_1].push_back("This place remembers. The Pioneer Family exhibit honors those who first settled Oakhaven. To show the spirits you mean no harm, perhaps a simple act of care is needed. Wiping away the dust from their memorial would speak volumes. Do this, and I feel they will quiet enough for me to get you the gas can from the storage room.");

@@ -166,6 +166,14 @@ void Game::transitionToState(GameState newState) {
 
     // Specific actions on entering a new state
     switch (newState) {
+        case GameState::FIRST_ENCOUNTER_WITH_GUIDE:
+            enterCutscene();
+            typeOut("--- " + guide.name + " ---", false);
+            typeOut(guide.getDialogue(currentGameState), true);
+            typeOut("\n(A thought crosses your mind: This man is clearly unwell... but he's my only way out of here. I'll play along.)");
+            exitCutscene();
+            transitionToState(GameState::AWAITING_TASK_1);
+            break;
         case GameState::GUIDE_FACES_VENGEANCE:
             enterCutscene();
             typeOut("--- " + guide.name + " ---", false);
@@ -391,8 +399,11 @@ void Game::handleGoCommand(const std::vector<std::string>& words) {
     if (player.currentLocation && player.currentLocation->exits.count(destination_key)) {
         Room* nextRoom = player.currentLocation->exits[destination_key];
         player.moveTo(nextRoom);
-        
-        if (nextRoom && nextRoom->id == "main_hall" && currentGameState == GameState::PLAYER_FOUND_MEDKIT) {
+
+        if (nextRoom && nextRoom->id == "main_hall" && currentGameState == GameState::INTRO) {
+            transitionToState(GameState::FIRST_ENCOUNTER_WITH_GUIDE);
+        } 
+        else if (nextRoom && nextRoom->id == "main_hall" && currentGameState == GameState::PLAYER_FOUND_MEDKIT) {
              transitionToState(GameState::PLAYER_RETURNS_GUIDE_UNHARMED_REVEAL);
         }
     } else {

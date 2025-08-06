@@ -19,7 +19,8 @@
 // GameState enum to manage distinct game phases and narrative progression
 enum class GameState {
     INTRO,                          // Initial game setup, player learns premise
-    
+    FIRST_ENCOUNTER_WITH_GUIDE,     // Trigger for the first meeting and task assignment 
+
     AWAITING_TASK_1,                // Guide explains the first task (Cleaning the Memorial)
     TASK_1_COMPLETE,                // Player completes it, first "threat" occurs
     AWAITING_TASK_2,                // Guide explains the second task (Organizing the Archives)
