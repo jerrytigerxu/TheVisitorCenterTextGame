@@ -38,7 +38,7 @@ void Game::setupRoomsAndExits() {
     // Create rooms
     allRooms.push_back(std::make_unique<Room>("car_breakdown", "Car Breakdown Site", "Your car has sputtered to a halt beside a desolate road. The imposing Oakhaven Visitor Center is your only visible shelter."));
     allRooms.push_back(std::make_unique<Room>("vc_entrance", "Visitor Center Entrance", "You stand at the threshold of the Oakhaven Visitor Center. The air is unnervingly still, and shadows cast by the setting sun seem to twist and writhe at the edges of your vision. It feels less like a building and more like a tomb holding its breath."));
-    allRooms.push_back(std::make_unique<Room>("main_hall", "Main Hall", "A large, dusty main hall stretches before you. Lifelike figures stand in silent watch from shadowy alcoves. An older man, the Guide, is here. He eyes you curiously."));
+    allRooms.push_back(std::make_unique<Room>("main_hall", "Main Hall", "A large, dusty main hall stretches before you. Lifelike figures stand in silent watch from shadowy alcoves. An older man, the Guide, is here. He eyes you curiously. A small, ornate music box sits on a high shelf."));
     allRooms.push_back(std::make_unique<Room>("storage_room", "Storage Room", "A cluttered storage area, filled with forgotten supplies and cobwebs. It smells of dust and decay."));
     allRooms.push_back(std::make_unique<Room>("office", "Office", "An old, neglected office. A large wooden desk sits in the center, covered in yellowed papers. There's a filing cabinet in the corner."));
     allRooms.push_back(std::make_unique<Room>("crisis_room", "West Wing Corridor", "A dim corridor in what seems to be a less-used part of the center. The Guide mentioned investigating a noise from this direction. It feels colder here.")); 
@@ -179,7 +179,7 @@ void Game::transitionToState(GameState newState) {
             transitionToState(GameState::AWAITING_TASK_1);
             break;
         
-            case GameState::GUIDE_FACES_VENGEANCE:
+        case GameState::GUIDE_FACES_VENGEANCE:
             enterCutscene();
             typeOut("--- " + guide.name + " ---", false);
             typeOut(guide.getDialogue(currentGameState), true);
@@ -187,18 +187,20 @@ void Game::transitionToState(GameState newState) {
             transitionToState(GameState::CHOICE_POINT_LEAVE_OR_HELP);
             break;
         case GameState::TASK_1_COMPLETE:
-            enterCutscene();
-            typeOut("As you finish, a sudden, loud CRASH from across the hall makes you jump.");
-            typeOut("The small music box has fallen from its shelf, shattering on the floorboards.");
-            typeOut("Your heart hammers against your ribs. It must have been precariously balanced. It had to be.");
-            
-            InteractiveElement* musicBox = player.currentLocation->getInteractiveElement("music_box");
-            if (musicBox) musicBox->reveal();
+            {
+                enterCutscene();
+                typeOut("As you finish, a sudden, loud CRASH from across the hall makes you jump.");
+                typeOut("The small music box has fallen from its shelf, shattering on the floorboards.");
+                typeOut("Your heart hammers against your ribs. It must have been precariously balanced. It had to be.");
+                
+                InteractiveElement* musicBox = player.currentLocation->getInteractiveElement("music_box");
+                if (musicBox) musicBox->reveal();
 
-            typeOut("\n--- " + guide.name + " ---", false);
-            typeOut("He flinches at the sound, his face pale. 'A good sign,' he whispers, though he sounds anything but convinced. 'The spirits... they noticed. I can now unlock the storage room for you. The gas can should be in there.'");
-            exitCutscene();
-            transitionToState(GameState::AWAITING_TASK_2);
+                typeOut("\n--- " + guide.name + " ---", false);
+                typeOut("He flinches at the sound, his face pale. 'A good sign,' he whispers, though he sounds anything but convinced. 'The spirits... they noticed. I can now unlock the storage room for you. The gas can should be in there.'");
+                exitCutscene();
+                transitionToState(GameState::AWAITING_TASK_2);
+            }
             break;
         case GameState::CHOICE_POINT_LEAVE_OR_HELP:
             enterCutscene();
@@ -374,6 +376,8 @@ void Game::processInput(const std::string& rawInput) {
         handleHelpCommand(words);
     } else if (command == "use") {
         handleUseCommand(words);
+    } else if (command == "clean") {
+        handleCleanCommand(words);
     } else if (command == "leave" || command == "help") { // Simplified choice commands
         if (currentGameState == GameState::CHOICE_POINT_LEAVE_OR_HELP) {
              handleChooseCommand({command}); // Pass the command directly
