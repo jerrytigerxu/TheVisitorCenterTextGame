@@ -24,6 +24,9 @@ public:
     bool hasSurgicalDefensiveItem;
     bool hasFirstAidKit;
 
+    // Flags for task completion
+    bool hasCleanedMemorial; 
+
     // Constructor
     Player(Room* startLocation);
 

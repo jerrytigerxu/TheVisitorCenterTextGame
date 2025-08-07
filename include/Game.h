@@ -112,6 +112,7 @@ private:
     void handleHelpCommand(const std::vector<std::string>& words);
     void handleUseCommand(const std::vector<std::string>& words);
     void handleChooseCommand(const std::vector<std::string>& words);
+    void handleCleanCommand(const std::vector<std::string>& words);
 
     // Utility
     Room* findRoomById(const std::string& roomId);

@@ -101,7 +101,11 @@ void Game::setupInteractiveElements() {
         hall->addInteractiveElement(InteractiveElement("guide", 
             "The Visitor Guide is an older man, with eyes that dart nervously around the room. He carries the weight of this place on his shoulders, an air of profound fear about him.",
             "The Guide's fear is gone, replaced by a triumphant, predatory smile. He is the master of this macabre gallery, the hunter who has successfully lured his prey."));
-    }
+        hall->addInteractiveElement(InteractiveElement("music_box",
+            "A small, ornate music box sits on a high shelf, covered in a thin layer of dust.",
+            "Shards of wood and metal litter the floor where the music box used to be. It's completely destroyed."));
+        }
+
      Room* office = findRoomById("office");
     if (office) {
         office->addInteractiveElement(InteractiveElement("desk", "A large wooden desk covered in yellowed papers and dust. A few drawers are visible.", "The papers on the desk are old visitor logs, some entries ending abruptly."));
@@ -174,14 +178,28 @@ void Game::transitionToState(GameState newState) {
             exitCutscene();
             transitionToState(GameState::AWAITING_TASK_1);
             break;
-        case GameState::GUIDE_FACES_VENGEANCE:
+        
+            case GameState::GUIDE_FACES_VENGEANCE:
             enterCutscene();
             typeOut("--- " + guide.name + " ---", false);
             typeOut(guide.getDialogue(currentGameState), true);
             exitCutscene();
             transitionToState(GameState::CHOICE_POINT_LEAVE_OR_HELP);
             break;
+        case GameState::TASK_1_COMPLETE:
+            enterCutscene();
+            typeOut("As you finish, a sudden, loud CRASH from across the hall makes you jump.");
+            typeOut("The small music box has fallen from its shelf, shattering on the floorboards.");
+            typeOut("Your heart hammers against your ribs. It must have been precariously balanced. It had to be.");
+            
+            InteractiveElement* musicBox = player.currentLocation->getInteractiveElement("music_box");
+            if (musicBox) musicBox->reveal();
 
+            typeOut("\n--- " + guide.name + " ---", false);
+            typeOut("He flinches at the sound, his face pale. 'A good sign,' he whispers, though he sounds anything but convinced. 'The spirits... they noticed. I can now unlock the storage room for you. The gas can should be in there.'");
+            exitCutscene();
+            transitionToState(GameState::AWAITING_TASK_2);
+            break;
         case GameState::CHOICE_POINT_LEAVE_OR_HELP:
             enterCutscene();
             typeOut("\nWith the sounds of the attack echoing behind you, your mind races. Your mother... waiting.");
@@ -396,6 +414,13 @@ void Game::handleGoCommand(const std::vector<std::string>& words) {
         return;
     }
     std::string destination_key = words[1];
+
+    // Room Unlocking Logic
+    if (destination_key == "storage" && currentGameState < GameState::AWAITING_TASK_2) {
+        std::cout << "The Guide has not unlocked that door for you yet. It's locked." << std::endl;
+        return; 
+    }
+
     if (player.currentLocation && player.currentLocation->exits.count(destination_key)) {
         Room* nextRoom = player.currentLocation->exits[destination_key];
         player.moveTo(nextRoom);
@@ -569,6 +594,35 @@ void Game::handleChooseCommand(const std::vector<std::string>& words) {
         transitionToState(GameState::PLAYER_CHOOSES_HELP_SEARCH_MEDKIT);
     } else {
         std::cout << "That's not a valid choice here. Try 'leave' or 'help'." << std::endl;
+    }
+}
+
+void Game::handleCleanCommand(const std::vector<std::string>& words) {
+    if (words.size() < 2 || words[1] != "memorial") {
+        std::cout << "Clean what? (Perhaps you should 'clean memorial'?)" << std::endl;
+        return;
+    }
+    if (player.currentLocation->id != "main_hall") {
+        std::cout << "There is no memorial to clean here." << std::endl;
+        return; 
+    }
+    if (currentGameState == GameState::AWAITING_TASK_1) {
+        if (!player.hasCleanedMemorial) {
+            player.hasCleanedMemorial = true;
+
+            // Update the memorial's description to be clean
+            InteractiveElement* memorial = player.currentLocation->getInteractiveElement("memorial");
+            if (memorial) {
+                memorial->reveal();
+            }
+
+            std::cout << "You carefully wipe the dust and grime from the memorial plaque. It's a small gesture, but it feels significant." << std::endl;
+            transitionToState(GameState::TASK_1_COMPLETE);
+        } else {
+            std::cout << "You've already cleaned the memorial." << std::endl;
+        }
+    } else {
+        std::cout << "That doesn't seem necessary right now." << std::endl; 
     }
 }
 

@@ -8,7 +8,8 @@ Player::Player(Room* startLocation)
     hasSpareTire(false),
     hasOilFluid(false),
     hasSurgicalDefensiveItem(false),
-    hasFirstAidKit(false) {}
+    hasFirstAidKit(false),
+    hasCleanedMemorial(false) {}
 
 // Moves the player to a new location 
 void Player::moveTo(Room* newLocation) {
