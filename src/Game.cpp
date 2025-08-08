@@ -190,7 +190,7 @@ void Game::displayIntro() {
     if (player.currentLocation) {
         player.currentLocation->look();
     }
-    transitionToState(GameState::AWAITING_TASK_1);
+    transitionToState(GameState::INTRO);
 }
 
 void Game::transitionToState(GameState newState) {
@@ -203,6 +203,7 @@ void Game::transitionToState(GameState newState) {
             typeOut("--- " + guide.name + " ---", false);
             typeOut(guide.getDialogue(currentGameState), true);
             typeOut("\n(A thought crosses your mind: This man is clearly unwell... but he's my only way out of here. I'll play along.)");
+            typeOut("\nYou should probably talk to him again to see what he wants you to do.");
             exitCutscene();
             transitionToState(GameState::AWAITING_TASK_1);
             break;
