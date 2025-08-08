@@ -408,6 +408,8 @@ void Game::processInput(const std::string& rawInput) {
         handleCleanCommand(words);
     } else if (command == "organize") {
         handleOrganizeCommand(words);
+    } else if (command == "trim") {
+        handleTrimCommand(words);
     } else if (command == "leave" || command == "help") { // Simplified choice commands
         if (currentGameState == GameState::CHOICE_POINT_LEAVE_OR_HELP) {
              handleChooseCommand({command}); // Pass the command directly
@@ -476,6 +478,17 @@ void Game::handleGoCommand(const std::vector<std::string>& words) {
                     enterCutscene();
                     typeOut("You re-enter the main hall. A chill crawls up your spine. Something feels... wrong.");
                     typeOut("(My heart is pounding. Did... did they just move? No. It's just my mind playing tricks on me. It has to be.)");
+                    exitCutscene();
+                }
+            }
+            else if (currentGameState == GameState::MENACING_TABLEAU) {
+                 InteractiveElement* figures = nextRoom->getInteractiveElement("figures");
+                if (figures && figures->currentState == 1) {
+                    figures->advanceState(); // Advance to Scare 2 description
+                    enterCutscene();
+                    typeOut("You step back into the hall and the sight before you steals the air from your lungs.");
+                    typeOut("It's not your imagination. The figures have moved. They are now clustered together in the center of the room, a silent, menacing jury. Their glassy eyes are all fixed on you.");
+                    typeOut("The Guide looks at them, his face a mask of pure terror.");
                     exitCutscene();
                 }
             }
@@ -589,9 +602,25 @@ void Game::handleTalkCommand(const std::vector<std::string>& words) {
                 transitionToState(GameState::AWAITING_TASK_3);
                 return;
             }
-            
-            
-            
+            // "False Hope" dialogue after Task 3
+            if (currentGameState == GameState::TASK_3_COMPLETE_FALSE_HOPE) {
+                enterCutscene();
+                typeOut("--- " + guide.name + " ---", false);
+                typeOut("It's quiet... too quiet. I think... I think we've done it. The air feels lighter. Thank you. Truly. As promised, my office is unlocked. The oil fluid is in there. Get it, and you can finally leave this dreadful place.", true);
+                typeOut("(A wave of relief washes over you. It's finally over. You just need to get the last part and you can go home.)");
+                exitCutscene();
+                transitionToState(GameState::MENACING_TABLEAU); // Set up the next trigger
+                return;
+            }
+            // "Desperate Last Resort" dialogue after the tableau
+            if (currentGameState == GameState::MENACING_TABLEAU) {
+                enterCutscene();
+                typeOut("--- " + guide.name + " ---", false);
+                typeOut("It wasn't enough! They're angrier than ever! My plan... it failed! I... I'm so sorry. There is one last thing we can try. A desperate, final act. A candlelight vigil. To show our sorrow for their final moments. In the office... please. It's our only chance.", true);
+                exitCutscene();
+                transitionToState(GameState::AWAITING_TASK_4);
+                return;
+            }
             
             // Default dialogue
             enterCutscene();
@@ -723,6 +752,34 @@ void Game::handleOrganizeCommand(const std::vector<std::string>& words) {
         }
     } else {
         std::cout << "That doesn't seem necessary right now." << std::endl;
+    }
+}
+
+void Game::handleTrimCommand(const std::vector<std::string>& words) {
+    if (words.size() < 2 || words[1] != "overgrowth") {
+        std::cout << "Trim what? (Perhaps 'trim overgrowth'?)" << std::endl;
+        return;
+    }
+    if (player.currentLocation->id != "west_wing") {
+        std::cout << "There is no overgrowth to trim here." << std::endl;
+        return; 
+    }
+    if (currentGameState == GameState::AWAITING_TASK_3) {
+        if (!player.hasTrimmedGarden) {
+            player.hasTrimmedGarden = true;
+            InteractiveElement* overgrowth = player.currentLocation->getInteractiveElement("overgrowth");
+            if (overgrowth) overgrowth->advanceState();
+            
+            enterCutscene();
+            typeOut("You carefully trim back the thorny vines, revealing the names on the memorial stones. A profound sadness seems to lift from the area.");
+            typeOut("You should return to the Guide in the main hall.");
+            exitCutscene();
+            transitionToState(GameState::TASK_3_COMPLETE_FALSE_HOPE);
+        } else {
+            std::cout << "You've already trimmed the overgrowth." << std::endl;
+        }
+    } else {
+        std::cout << "That doesn't seem necessary right now." << std::endl; 
     }
 }
 
