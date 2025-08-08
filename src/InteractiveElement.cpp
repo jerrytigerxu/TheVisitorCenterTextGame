@@ -1,23 +1,25 @@
 #include "InteractiveElement.h"
 
 // Constructor
-InteractiveElement::InteractiveElement(std::string name, std::string initial_desc, std::string revealed_desc)
+InteractiveElement::InteractiveElement(std::string name, const std::vector<std::string>& descs)
     : name(std::move(name)),
-        initial_description(std::move(initial_desc)),
-        revealed_description(std::move(revealed_desc)),
-        is_revealed(false) {}
+    descriptions(descs),
+    currentState(0) {}
 
 // Displays the current description of the element
 void InteractiveElement::examine() const {
-    if (is_revealed && !revealed_description.empty()) {
-        std::cout << revealed_description << std::endl;
+    if (!descriptions.empty() && currentState < descriptions.size()) {
+        std::cout << descriptions[currentState] << std::endl;
     } else {
-        std::cout << initial_description << std::endl;
+        std::cout << "You look at the " << name << ", but nothing seems out of the ordinary." << std::endl;
     }
 }
 
-// Method to change the element's state to be revealed
-void InteractiveElement::reveal() {
-    is_revealed = true;
-    // Potentially add a message here if revealing it has an immediate effect/text
+// Method to advance the element to its next state
+void InteractiveElement::advanceState() {
+    // Check if there is a next state to advance to 
+    if (currentState + 1 < descriptions.size()) {
+        currentState++;
+    }
+    
 }

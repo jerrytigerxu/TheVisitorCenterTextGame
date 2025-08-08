@@ -95,18 +95,50 @@ void Game::setupItems() {
 void Game::setupInteractiveElements() {
     Room* hall = findRoomById("main_hall");
     if (hall) {
-        hall->addInteractiveElement(InteractiveElement("figures", 
-            "The 'exhibits' are figures depicting scenes from Oakhaven's history. From a distance, they look like wax, but up close, the detail is unnerving. The texture of the skin is too porous, the hair seems too fine, and the eyes have a glassy, wet-looking sheen that makes you want to look away.",
-            "The 'figures' are no exhibits. They are horrifyingly preserved human bodies, skin like leather, eyes fixed in a moment of past terror. The Guide's 'collection'."));
-        hall->addInteractiveElement(InteractiveElement("guide", 
+        // The Figures: Now with multiple descriptions for the scares.
+        hall->addInteractiveElement(InteractiveElement("figures", {
+            /* State 0: Initial */ "The 'exhibits' are figures depicting scenes from Oakhaven's history. From a distance, they look like wax, but up close, the detail is unnerving. The texture of the skin is too porous, the hair seems too fine, and the eyes have a glassy, wet-looking sheen that makes you want to look away.",
+            /* State 1: Scare 1 */ "You look at the figures again. Your blood runs cold. You could swear one of the heads is tilted slightly, its glassy eyes now aimed directly at the entrance to the storage room. It must be a trick of the light.",
+            /* State 2: Scare 2 */ "It's not your imagination. The figures have definitely moved. They are now clustered together, forming a menacing tableau aimed at the center of the room. Their silent judgment is suffocating.",
+            /* State 3: Revealed */ "The 'figures' are no exhibits. They are horrifyingly preserved human bodies, skin like leather, eyes fixed in a moment of past terror. The Guide's 'collection'."
+        }));
+        
+        // The Guide
+        hall->addInteractiveElement(InteractiveElement("guide", {
             "The Visitor Guide is an older man, with eyes that dart nervously around the room. He carries the weight of this place on his shoulders, an air of profound fear about him.",
-            "The Guide's fear is gone, replaced by a triumphant, predatory smile. He is the master of this macabre gallery, the hunter who has successfully lured his prey."));
-        hall->addInteractiveElement(InteractiveElement("music_box",
-            "A small, ornate music box sits on a high shelf, covered in a thin layer of dust.",
-            "Shards of wood and metal litter the floor where the music box used to be. It's completely destroyed."));
-        }
+            "The Guide's fear is gone, replaced by a triumphant, predatory smile. He is the master of this macabre gallery, the hunter who has successfully lured his prey."
+        }));
 
-     Room* office = findRoomById("office");
+        // The Music Box (Task 1 Scare)
+        hall->addInteractiveElement(InteractiveElement("music_box", {
+            "A small, ornate music box sits on a high shelf, covered in a thin layer of dust.",
+            "Shards of wood and metal litter the floor where the music box used to be. It's completely destroyed."
+        }));
+
+        // Task 1 Object
+        hall->addInteractiveElement(InteractiveElement("memorial", {
+            "A dusty memorial plaque dedicated to the 'Pioneers of Oakhaven'. It's hard to read the names under the grime.",
+            "The memorial plaque is now clean, the names of the lost gleaming faintly in the dim light."
+        }));
+    }
+
+    Room* storage = findRoomById("storage_room");
+    if (storage) {
+        storage->addInteractiveElement(InteractiveElement("archives", {
+            "A collection of dusty photo albums and records, scattered chaotically across a table.",
+            "The archives are now neatly stacked. A lingering sense of order has been restored."
+        }));
+    }
+
+    Room* west_wing = findRoomById("west_wing");
+    if (west_wing) {
+        west_wing->addInteractiveElement(InteractiveElement("memorial_garden", {
+            "Thorny, overgrown vines choke the memorial stones in the garden area, obscuring them from view.",
+            "The thorny vines have been trimmed back, revealing the names on the stones beneath."
+        }));
+    }
+
+    Room* office = findRoomById("office");
     if (office) {
         office->addInteractiveElement(InteractiveElement("desk", "A large wooden desk covered in yellowed papers and dust. A few drawers are visible.", "The papers on the desk are old visitor logs, some entries ending abruptly."));
         office->addInteractiveElement(InteractiveElement("filing_cabinet", "A tall, metal filing cabinet. It looks locked.", "The filing cabinet might hold records, but it's securely locked."));
@@ -378,6 +410,8 @@ void Game::processInput(const std::string& rawInput) {
         handleUseCommand(words);
     } else if (command == "clean") {
         handleCleanCommand(words);
+    } else if (command == "organize") {
+        handleOrganizeCommand(words);
     } else if (command == "leave" || command == "help") { // Simplified choice commands
         if (currentGameState == GameState::CHOICE_POINT_LEAVE_OR_HELP) {
              handleChooseCommand({command}); // Pass the command directly
@@ -424,6 +458,14 @@ void Game::handleGoCommand(const std::vector<std::string>& words) {
         std::cout << "The Guide has not unlocked that door for you yet. It's locked." << std::endl;
         return; 
     }
+    if (destination_key == "west" && currentGameState < GameState::AWAITING_TASK_3) {
+        std::cout << "That part of the center is sealed off. The Guide hasn't opened it." << std::endl;
+        return;
+    }
+    if (destination_key == "office" && currentGameState < GameState::AWAITING_TASK_4) {
+        std::cout << "The Guide's office is securely locked." << std::endl;
+        return;
+    }
 
     if (player.currentLocation && player.currentLocation->exits.count(destination_key)) {
         Room* nextRoom = player.currentLocation->exits[destination_key];
@@ -431,7 +473,16 @@ void Game::handleGoCommand(const std::vector<std::string>& words) {
 
         if (nextRoom && nextRoom->id == "main_hall" && currentGameState == GameState::INTRO) {
             transitionToState(GameState::FIRST_ENCOUNTER_WITH_GUIDE);
-        } 
+        } else if (currentGameState == GameState::TASK_2_COMPLETE) {
+                InteractiveElement* figures = nextRoom->getInteractiveElement("figures");
+                if (figures && figures->currentState == 0) {
+                    figures->advanceState();
+                    enterCutscene();
+                    typeOut("You re-enter the main hall. A chill crawls up your spine. Something feels... wrong.");
+                    typeOut("(My heart is pounding. Did... did they just move? No. It's just my mind playing tricks on me. It has to be.)");
+                    exitCutscene();
+                }
+            }
         else if (nextRoom && nextRoom->id == "main_hall" && currentGameState == GameState::PLAYER_FOUND_MEDKIT) {
              transitionToState(GameState::PLAYER_RETURNS_GUIDE_UNHARMED_REVEAL);
         }
@@ -525,7 +576,28 @@ void Game::handleInventoryCommand([[maybe_unused]] const std::vector<std::string
 void Game::handleTalkCommand(const std::vector<std::string>& words) {
     if ((words.size() > 2 && (words[1] == "to" || words[1] == "with") && words[2] == "guide") ||
         (words.size() > 1 && words[1] == "guide")) {
-        if (player.currentLocation && player.currentLocation->getInteractiveElement("guide")) {
+        if (player.currentLocation && player.currentLocation->id == "main_hall") {
+            if (currentGameState == GameState::TASK_1_COMPLETE) {
+                enterCutscene();
+                typeOut("--- " + guide.name + " ---", false);
+                typeOut("Thank you. I... I can feel their anger lessening slightly. As promised, I have unlocked the storage room. The gas can should be in there. But... they are still not satisfied. The archives in that room... a place of history and order, has fallen into disarray. They hate chaos. If you could organize the scattered papers, it would soothe them further. This act of respect should grant us passage to the West Wing, where the spare tire is kept.", true);
+                exitCutscene();
+                transitionToState(GameState::AWAITING_TASK_2);
+                return;
+            }
+            if (currentGameState == GameState::TASK_2_COMPLETE) {
+                enterCutscene();
+                typeOut("--- " + guide.name + " ---", false);
+                typeOut("You saw it too, didn't you? The figures moving... It's getting worse. The spirits are more agitated than ever. There is one final act. A memorial garden in the West Wing has become overgrown. Tending to it might be the show of respect we need to finally calm them. The oil fluid you need is in my office. Please, this might be our last chance.", true);
+                exitCutscene();
+                transitionToState(GameState::AWAITING_TASK_3);
+                return;
+            }
+            
+            
+            
+            
+            // Default dialogue
             enterCutscene();
             typeOut("--- " + guide.name + " ---", false);
             std::string dialogue = guide.getDialogue(currentGameState);
@@ -627,6 +699,34 @@ void Game::handleCleanCommand(const std::vector<std::string>& words) {
         }
     } else {
         std::cout << "That doesn't seem necessary right now." << std::endl; 
+    }
+}
+
+void Game::handleOrganizeCommand(const std::vector<std::string>& words) {
+    if (words.size() < 2 || words[1] != "archives") {
+        std::cout << "Organize what? (Perhaps 'organize archives'?)" << std::endl;
+        return; 
+    }
+    if (player.currentLocation->id != "storage_room") {
+        std::cout << "There are no archives to organize here." << std::endl; 
+        return;
+    }
+    if (currentGameState == GameState::AWAITING_TASK_2) {
+        if (!player.hasOrganizedArchives) {
+            player.hasOrganizedArchives = true;
+            InteractiveElement* archives = player.currentLocation->getInteractiveElement("archives");
+            if (archives) archives->advanceState();
+
+            enterCutscene();
+            typeOut("You spend a few minutes stacking the old photo albums and papers into neat piles. The room feels a little less chaotic now.");
+            typeOut("You should return to the Guide in the main hall.");
+            exitCutscene();
+            transitionToState(GameState::TASK_2_COMPLETE);
+        } else {
+            std::cout << "You've already organized the archives." << std::endl;
+        }
+    } else {
+        std::cout << "That doesn't seem necessary right now." << std::endl;
     }
 }
 

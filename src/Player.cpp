@@ -9,7 +9,9 @@ Player::Player(Room* startLocation)
     hasOilFluid(false),
     hasSurgicalDefensiveItem(false),
     hasFirstAidKit(false),
-    hasCleanedMemorial(false) {}
+    hasCleanedMemorial(false), 
+    hasOrganizedArchives(false), 
+    hasTrimmedGarden(false) {}
 
 // Moves the player to a new location 
 void Player::moveTo(Room* newLocation) {

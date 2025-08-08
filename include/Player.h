@@ -26,6 +26,8 @@ public:
 
     // Flags for task completion
     bool hasCleanedMemorial; 
+    bool hasOrganizedArchives; 
+    bool hasTrimmedGarden; 
 
     // Constructor
     Player(Room* startLocation);
