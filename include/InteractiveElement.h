@@ -11,7 +11,7 @@ class InteractiveElement {
 public:
     std::string name; 
     std::vector<std::string> descriptions; 
-    int currentState;
+    size_t currentState;
 
     // Constructor 
     InteractiveElement(std::string name, const std::vector<std::string>& descs);

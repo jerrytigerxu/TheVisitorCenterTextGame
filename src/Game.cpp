@@ -138,11 +138,7 @@ void Game::setupInteractiveElements() {
         }));
     }
 
-    Room* office = findRoomById("office");
-    if (office) {
-        office->addInteractiveElement(InteractiveElement("desk", "A large wooden desk covered in yellowed papers and dust. A few drawers are visible.", "The papers on the desk are old visitor logs, some entries ending abruptly."));
-        office->addInteractiveElement(InteractiveElement("filing_cabinet", "A tall, metal filing cabinet. It looks locked.", "The filing cabinet might hold records, but it's securely locked."));
-    }
+    
 }
 
 void Game::setupGuide() {
@@ -226,7 +222,7 @@ void Game::transitionToState(GameState newState) {
                 typeOut("Your heart hammers against your ribs. It must have been precariously balanced. It had to be.");
                 
                 InteractiveElement* musicBox = player.currentLocation->getInteractiveElement("music_box");
-                if (musicBox) musicBox->reveal();
+                if (musicBox) musicBox->advanceState();
 
                 typeOut("\n--- " + guide.name + " ---", false);
                 typeOut("He flinches at the sound, his face pale. 'A good sign,' he whispers, though he sounds anything but convinced. 'The spirits... they noticed. I can now unlock the storage room for you. The gas can should be in there.'");
@@ -255,7 +251,7 @@ void Game::transitionToState(GameState newState) {
             enterCutscene();
             if (player.currentLocation) {
                 InteractiveElement* figures = player.currentLocation->getInteractiveElement("figures");
-                if (figures) figures->reveal();
+                if (figures) figures->advanceState();
             }
             typeOut("--- " + guide.name + " ---", false);
             typeOut(guide.getDialogue(currentGameState), true);
@@ -689,7 +685,7 @@ void Game::handleCleanCommand(const std::vector<std::string>& words) {
             // Update the memorial's description to be clean
             InteractiveElement* memorial = player.currentLocation->getInteractiveElement("memorial");
             if (memorial) {
-                memorial->reveal();
+                memorial->advanceState();
             }
 
             std::cout << "You carefully wipe the dust and grime from the memorial plaque. It's a small gesture, but it feels significant." << std::endl;
