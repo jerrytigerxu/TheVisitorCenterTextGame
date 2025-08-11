@@ -20,7 +20,7 @@ public:
     void examine() const; 
 
     // Advances the element to its next description/state
-    void advanceState();
+    void advanceState(int newState = -1);
 
 };
 

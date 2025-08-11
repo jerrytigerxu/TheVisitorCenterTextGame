@@ -129,6 +129,7 @@ private:
     void handleOrganizeCommand(const std::vector<std::string>& words);
     void handleTrimCommand(const std::vector<std::string>& words);
 
+
     // Utility
     // @brief Finds a room by its unique ID
     Room* findRoomById(const std::string& roomId);

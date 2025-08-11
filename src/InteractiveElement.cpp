@@ -16,10 +16,16 @@ void InteractiveElement::examine() const {
 }
 
 // Method to advance the element to its next state
-void InteractiveElement::advanceState() {
-    // Check if there is a next state to advance to 
-    if (currentState + 1 < descriptions.size()) {
-        currentState++;
+void InteractiveElement::advanceState(int newState) {
+    if (newState == -1) {
+        if (currentState + 1 < descriptions.size()) {
+            currentState++;
+        }
+    } else {
+        if (static_cast<size_t>(newState) < descriptions.size()) {
+            currentState = newState; 
+        }
     }
+
     
 }

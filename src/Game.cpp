@@ -145,6 +145,16 @@ void Game::setupInteractiveElements() {
         }));
     }
 
+    Room* office = findRoomById("office");
+    if(office) {
+        office->addInteractiveElement(InteractiveElement("papers", {"A stack of yellowed papers sits on the corner of the desk."}));
+        // The candle is now an interactive element in the office.
+        office->addInteractiveElement(InteractiveElement("candle", {
+            /* State 0 */ "A simple white wax candle sits on the desk, unlit. The Guide mentioned this was for the vigil.",
+            /* State 1 */ "The candle has been knocked over, its flame extinguished. A wisp of smoke curls from the wick."
+        }));
+    }
+
     
 }
 
@@ -240,17 +250,29 @@ void Game::transitionToState(GameState newState) {
                 transitionToState(GameState::AWAITING_TASK_2);
             }
             break;
+        case GameState::VIGIL_MISTAKE:
+            enterCutscene();
+            typeOut("You use a lighter from your pocket to light the candle. For a moment, a solemn quiet fills the room.");
+            typeOut("Then, a sudden tremor shakes the building! You stumble, knocking the desk. The candle topples, instantly extinguished against the floor.");
+            typeOut("--- " + guide.name + " ---", false);
+            typeOut(guide.getDialogue(currentGameState), true);
+            typeOut("He flees the office, and you hear the sounds of a horrific attack begin in the main hall.");
+            exitCutscene();
+            transitionToState(GameState::CHOICE_POINT_LEAVE_OR_HELP);
+            break;
         case GameState::CHOICE_POINT_LEAVE_OR_HELP:
             enterCutscene();
-            typeOut("\nWith the sounds of the attack echoing behind you, your mind races. Your mother... waiting.");
-            typeOut("But you caused this. You doomed him. What kind of person would you be if you just left?");
-            typeOut("Your choices: 'leave' or 'help'.");
+            typeOut("\nWith the sounds of the attack echoing from the other room, your mind races. Your mother... waiting.");
+            typeOut("But you caused this. You feel the weight of your mistake, the chilling belief that you have doomed him.");
+            typeOut("You have all the parts to fix your car. Your choice is stark and immediate: 'leave' or 'help'.");
             exitCutscene();
             break;
 
         case GameState::PLAYER_RETURNS_GUIDE_UNHARMED_REVEAL:
             enterCutscene();
             guide.setFeigningInjury(false); 
+            typeOut("You burst back into the main hall, First Aid Kit in hand, to find... silence.");
+            typeOut("The Guide stands there, completely unharmed, a strange, calm smile on his face.");
             typeOut("--- " + guide.name + " ---", false);
             typeOut(guide.getDialogue(currentGameState), true);
             exitCutscene();
@@ -260,9 +282,9 @@ void Game::transitionToState(GameState newState) {
         case GameState::FIGURES_REVEALED:
             enterCutscene();
             if (player.currentLocation) {
-                InteractiveElement* figures = player.currentLocation->getInteractiveElement("figures");
-                if (figures) figures->advanceState();
+                if (InteractiveElement* figures = player.currentLocation->getInteractiveElement("figures")) figures->advanceState(3);
             }
+            typeOut("He gestures to the figures, their true nature now horrifyingly apparent in the dim light.");
             typeOut("--- " + guide.name + " ---", false);
             typeOut(guide.getDialogue(currentGameState), true);
             exitCutscene();
@@ -293,26 +315,27 @@ void Game::displayEnding(GameState endingType) {
     switch (endingType) {
         case GameState::ENDING_NOT_WORTHY:
             typeOut("\n--- ENDING 1: The Unworthy ---");
-            typeOut("The image of your mother, pale and still in a hospital bed, burned in your mind. Guilt was a hot stone in your gut, but the primal need to reach your family was a tidal wave.");
-            typeOut("As you flee the Visitor Center, the Guide's voice, no longer weak, echoes from within:");
+            typeOut("The image of your mother, pale and still in a hospital bed, burns in your mind. Guilt is a hot stone in your gut, but the primal need to reach your family is a tidal wave that washes it all away.");
+            typeOut("You don't look back. You fix the car in a frenzy, your hands shaking, and peel away from the curb, leaving the screams and the Visitor Center behind.");
+            typeOut("As you flee, a single, clear whisper, no longer weak or afraid, seems to follow you on the wind, a final, chilling judgment:");
             typeOut("--- " + guide.name + " ---", false);
-            typeOut(guide.getDialogue(currentGameState), true);
-            typeOut("You escape, the words a brand, but the drive to the hospital consuming all else.");
+            typeOut(guide.getDialogue(endingType), true);
+            typeOut("You escape, but the word is a brand on your soul.");
             break;
         case GameState::ENDING_GOOD_ESCAPED:
             typeOut("\n--- ENDING 2: The Escape ---");
-            typeOut("With a desperate surge of adrenaline, you use the surgical instrument!");
-            typeOut("The Guide recoils, momentarily stunned, giving you the chance you need.");
-            typeOut("You scramble past him and out of the horrific visitor center, not daring to look back.");
-            typeOut("Forever scarred, you carry the weight of Oakhaven, but also a desperate hope as you race towards your mother.");
+            typeOut("With a desperate surge of adrenaline, you plunge the sharp surgical instrument forward!");
+            typeOut("The Guide recoils, a look of genuine shock on his face, giving you the single moment you need.");
+            typeOut("You scramble past him and out of the horrific gallery, not daring to look back, the image of his collection burned into your memory.");
+            typeOut("Forever scarred, you carry the weight of Oakhaven, but also a desperate hope as you race towards your mother, a survivor.");
             break;
         case GameState::ENDING_BAD_VICTIM:
             typeOut("\n--- ENDING 3: The Collection ---");
-            typeOut("You try to react, but the Guide is too quick, his earlier frailty a complete deception.");
-            typeOut("His smile is the last thing you see.");
+            typeOut("You fumble for a defense, but the Guide is too quick, his earlier frailty a masterful deception.");
+            typeOut("His triumphant smile is the last thing you see.");
             typeOut("--- " + guide.name + " ---", false);
-            typeOut(guide.getDialogue(currentGameState), true);
-            typeOut("The Oakhaven Visitor Center had claimed another exhibit. Far away, a hospital vigil continued, unaware.");
+            typeOut(guide.getDialogue(endingType), true);
+            typeOut("The Oakhaven Visitor Center has claimed another exhibit. Far away, a hospital vigil continues, unaware of why their loved one never arrived.");
             break;
         default:
             typeOut("Error: Unknown ending type.");
@@ -624,14 +647,10 @@ void Game::handleTalkCommand(const std::vector<std::string>& words) {
                 transitionToState(GameState::MENACING_TABLEAU); // Set up the next trigger
                 return;
             }
-            // "Desperate Last Resort" dialogue after the tableau
             if (currentGameState == GameState::MENACING_TABLEAU) {
-                enterCutscene();
-                typeOut("--- " + guide.name + " ---", false);
-                typeOut("It wasn't enough! They're angrier than ever! My plan... it failed! I... I'm so sorry. There is one last thing we can try. A desperate, final act. A candlelight vigil. To show our sorrow for their final moments. In the office... please. It's our only chance.", true);
-                exitCutscene();
-                transitionToState(GameState::AWAITING_TASK_4);
-                return;
+                enterCutscene(); typeOut("--- " + guide.name + " ---", false);
+                typeOut(guide.getDialogue(GameState::AWAITING_TASK_4), true);
+                exitCutscene(); transitionToState(GameState::AWAITING_TASK_4); return;
             }
             
             // Default dialogue
@@ -666,15 +685,29 @@ void Game::handleHelpCommand(const std::vector<std::string>& words) {
 
 void Game::handleUseCommand(const std::vector<std::string>& words) {
     if (words.size() < 2) { std::cout << "Use what?" << std::endl; return; }
-    std::string itemId = words[1];
+    std::string targetId = words[1];
 
-    if (!player.hasItem(itemId)) {
-        std::cout << "You don't have a '" << itemId << "' to use." << std::endl;
+    // --- Logic for using the Candle Interactive Element ---
+    if (targetId == "candle") {
+        if (currentGameState == GameState::AWAITING_TASK_4 && player.currentLocation->id == "office") {
+            if (InteractiveElement* candle = player.currentLocation->getInteractiveElement("candle")) {
+                candle->advanceState(); // Show it's been used/knocked over
+                transitionToState(GameState::VIGIL_MISTAKE);
+                return; // Interaction handled
+            }
+        } else {
+            std::cout << "Now doesn't seem like the right time or place to use the candle." << std::endl;
+            return;
+        }
+    }
+
+    if (!player.hasItem(targetId)) {
+        std::cout << "You don't have a '" << targetId << "' to use." << std::endl;
         return;
     }
     
     // --- DEMO of how cutscenes will work for tasks ---
-    if (itemId == "gas_can" && currentGameState == GameState::AWAITING_TASK_1) {
+    if (targetId == "gas_can" && currentGameState == GameState::AWAITING_TASK_1) {
         transitionToState(GameState::TASK_1_COMPLETE);
         enterCutscene();
         typeOut("This isn't how it works. The Guide asked you to perform an act of respect, not just use an item.");
@@ -685,7 +718,7 @@ void Game::handleUseCommand(const std::vector<std::string>& words) {
         return;
     }
 
-    std::cout << "You try to use the " << itemId << ", but nothing specific happens." << std::endl;
+    std::cout << "You try to use the " << targetId << ", but nothing specific happens." << std::endl;
 }
 
 void Game::handleChooseCommand(const std::vector<std::string>& words) {
@@ -702,7 +735,7 @@ void Game::handleChooseCommand(const std::vector<std::string>& words) {
         transitionToState(GameState::ENDING_NOT_WORTHY);
     } else if (choice == "help") {
         enterCutscene();
-        typeOut("You decide to help the Guide. He weakly gestures towards the office, muttering about a First Aid Kit.");
+        typeOut("Overcome with guilt, you decide you can't leave him. You have to help. You remember seeing a First Aid Kit in the office.");
         exitCutscene();
         transitionToState(GameState::PLAYER_CHOOSES_HELP_SEARCH_MEDKIT);
     } else {

@@ -31,11 +31,11 @@ void Guide::initializeDialogue() {
     // Dialogue for Task 3
     dialogueLines[GameState::AWAITING_TASK_3].push_back("Did you see them move? It's getting worse... The music box that fell... it belonged to a little girl, one of the first to be lost here. Her spirit is the most restless. If you could repair it... maybe its song could bring some peace to her, and to this place. The oil fluid is in my office. A final act of respect like this might be all we need.");
 
-    // Dialogue for Task 4
-    dialogueLines[GameState::AWAITING_TASK_4].push_back("The tableau... they've arranged themselves... it's a warning. My plan failed. I... I'm so sorry. There is one last thing we can try. A desperate, final act. A candlelight vigil. To show our sorrow, our respect for their final moments. In the office... please. It's our only chance.");
+    // --- Endgame Dialogue ---
+    dialogueLines[GameState::AWAITING_TASK_4].push_back("It wasn't enough! They're angrier than ever! My plan... it failed! I... I'm so sorry. There is one last thing we can try. A desperate, final act. A candlelight vigil. To show our sorrow, our respect for their final moments. In the office... please. I've left a candle for you on the desk. Light it when you are ready. It's our only chance.");
+    dialogueLines[GameState::VIGIL_MISTAKE].push_back("(A furious SHRIEK erupts from the main hall) You've desecrated the vigil! Now they will have their vengeance on ME!");
 
-    // Endgame dialogue remains
-    dialogueLines[GameState::GUIDE_FACES_VENGEANCE].push_back("(Screaming) You've desecrated the vigil! Now they will have their vengeance on ME!");
+    // Ending dialogue 
     dialogueLines[GameState::PLAYER_RETURNS_GUIDE_UNHARMED_REVEAL].push_back("Oh, that old thing? No, my dear friend... that wasn't for me. And you... you chose to stay.");
     dialogueLines[GameState::FIGURES_REVEALED].push_back("The figures... they are my collection of past 'worthy' individuals, 'saved' at their moment of purest empathy.");
     dialogueLines[GameState::FINAL_CONFRONTATION_IMMINENT].push_back("You, my friend, have shown such profound compassion. It is time for you to join them, to be kept perfect, forever.");
