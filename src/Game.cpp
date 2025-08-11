@@ -34,6 +34,7 @@ void Game::setupGame() {
     }
 }
 
+// @brief Creates all the Room objects and links them together with exits 
 void Game::setupRoomsAndExits() {
     // Create rooms
     allRooms.push_back(std::make_unique<Room>("car_breakdown", "Car Breakdown Site", "Your car has sputtered to a halt beside a desolate road. The imposing Oakhaven Visitor Center is your only visible shelter."));
@@ -69,6 +70,9 @@ void Game::setupRoomsAndExits() {
     if (crisis && hall) crisis->addExit("hall", hall); 
 }
 
+// @brief Creates all initial items and places them in their respective rooms 
+// Items are also managed by unique_ptr. The Room that contains an item "owns" it 
+// until the player picks it up, at which point ownership is transferred to the player.
 void Game::setupItems() {
     // "Means to leave" items - Placed for sequential pickup
     // Item 1: Gas Can (Storage Room)
@@ -92,6 +96,9 @@ void Game::setupItems() {
     // It will be dynamically added to the "office" when "oil_fluid" is picked up.
 }
 
+// @brief Creates all interactive elements and places them in their rooms.
+// Interactive elements are objects in the world that have descriptions that can change as 
+// the story progresses, creating a dynamic and reactive environment.
 void Game::setupInteractiveElements() {
     Room* hall = findRoomById("main_hall");
     if (hall) {
@@ -193,6 +200,8 @@ void Game::displayIntro() {
     transitionToState(GameState::INTRO);
 }
 
+// @brief The main state transition handler. This is the heart of the game's narrative logic
+// When the game needs to move to a new narrative beat, this function is called.
 void Game::transitionToState(GameState newState) {
     currentGameState = newState;
 
@@ -278,6 +287,7 @@ void Game::transitionToState(GameState newState) {
     }
 }
 
+// @brief Displays the final text for the game's endings
 void Game::displayEnding(GameState endingType) {
     enterCutscene();
     switch (endingType) {
@@ -345,6 +355,7 @@ void Game::run() {
     std::cout << "\n--- Thank you for playing The Visitor Center! ---" << std::endl;
 }
 
+// @brief Parses the raw input string from the user into a vector of command words 
 std::vector<std::string> Game::parseCommand(const std::string& rawInput) {
     std::vector<std::string> words;
     std::string input = rawInput;

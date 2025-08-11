@@ -17,6 +17,8 @@
 #include "InteractiveElement.h"
 
 // GameState enum to manage distinct game phases and narrative progression
+// This acts as a state machine, ensuring events happen in the correct sequence
+// and that player actions are only available at the appropriate times 
 enum class GameState {
     INTRO,                          // Initial game setup, player learns premise
     FIRST_ENCOUNTER_WITH_GUIDE,     // Trigger for the first meeting and task assignment 
@@ -74,21 +76,32 @@ public:
     void run();
 
 private:
+    // --- State-tracking members ---
     // Flag to track if the surgical item has been spawned into the game world
     bool surgicalItemSpawned;
 
     // --- Cutscene and Typing Effect members ---
+
+    // Flag to suppress the command prompt during narrative sequences
     bool isInCutscene;
+
+    // @brief Prints text to the console with a typewriter effect
     void typeOut(const std::string& text, bool isDialogue = false);
+
+    // @brief Enters cutscene mode, hiding the input prompt
     void enterCutscene();
+    
+    // @brief Exits cutscene mode, showing the input prompt again 
     void exitCutscene();
 
-    // Initializes game objects
+    // Initializes game objects and orchestrates the setup of the entire game world 
     void setupGame();
     void setupRoomsAndExits();
     void setupItems();
     void setupInteractiveElements();
     void setupGuide();
+
+    // --- Input and State Management ---
 
     // Processes player input
     void processInput(const std::string& rawInput);
@@ -117,6 +130,7 @@ private:
     void handleTrimCommand(const std::vector<std::string>& words);
 
     // Utility
+    // @brief Finds a room by its unique ID
     Room* findRoomById(const std::string& roomId);
 
 
