@@ -23,16 +23,16 @@ void Guide::initializeDialogue() {
     dialogueLines[GameState::FIRST_ENCOUNTER_WITH_GUIDE].push_back("Oh! A visitor... I... I'm sorry for the state of things. The air has been so heavy lately. Since you've arrived... the spirits... they feel your presence, and they're not pleased. They are keeping me from the supply rooms... where the parts you need for your car are stored. But... there may be a way. There are three acts of respect we must show them. If we can prove you honor their memory, I believe they will relent.");
 
     // Dialogue for Task 1
-    dialogueLines[GameState::AWAITING_TASK_1].push_back("This place remembers. The Pioneer Family exhibit honors those who first settled Oakhaven. To show the spirits you mean no harm, perhaps a simple act of care is needed. Wiping away the dust from their memorial would speak volumes. Do this, and I feel they will quiet enough for me to get you the gas can from the storage room.");
+    dialogueLines[GameState::AWAITING_TASK_1].push_back("This place remembers. The Pioneer Family exhibit honors those who first settled Oakhaven. To show the spirits you mean no harm, perhaps a simple act of care is needed. Wiping away the dust from their memorial would speak volumes. 'Clean' it, and I feel they will quiet enough for me to get you the gas can from the storage room.");
 
     // Dialogue for Task 2
-    dialogueLines[GameState::AWAITING_TASK_2].push_back("That noise... the music box... they're still not satisfied. The archives... a place of history and order, has fallen into disarray. They hate chaos. If you could organize the scattered papers, put things back in order... it would soothe them. The spare tire is in the West Wing; this act of respect should grant us passage.");
+    dialogueLines[GameState::AWAITING_TASK_2].push_back("That noise... the music box... they're still not satisfied. The archives... a place of history and order, has fallen into disarray. They hate chaos. If you could 'organize' the scattered papers, put things back in order... it would soothe them. The archives should be in the storage room. The spare tire that you need is in the West Wing; this act of respect should grant us passage.");
 
     // Dialogue for Task 3
     dialogueLines[GameState::AWAITING_TASK_3].push_back("Did you see them move? It's getting worse... The music box that fell... it belonged to a little girl, one of the first to be lost here. Her spirit is the most restless. If you could repair it... maybe its song could bring some peace to her, and to this place. The oil fluid is in my office. A final act of respect like this might be all we need.");
 
     // --- Endgame Dialogue ---
-    dialogueLines[GameState::AWAITING_TASK_4].push_back("It wasn't enough! They're angrier than ever! My plan... it failed! I... I'm so sorry. There is one last thing we can try. A desperate, final act. A candlelight vigil. To show our sorrow, our respect for their final moments. In the office... please. I've left a candle for you on the desk. Light it when you are ready. It's our only chance.");
+    dialogueLines[GameState::AWAITING_TASK_4].push_back("It wasn't enough! They're angrier than ever! My plan... it failed! I... I'm so sorry. There is one last thing we can try. A desperate, final act. A candlelight vigil. To show our sorrow, our respect for their final moments. In the office... please. I've left a candle for you on the desk. 'Use' it when you are ready. It's our only chance.");
     dialogueLines[GameState::VIGIL_MISTAKE].push_back("(A furious SHRIEK erupts from the main hall) You've desecrated the vigil! Now they will have their vengeance on ME!");
 
     // Ending dialogue 
@@ -40,6 +40,9 @@ void Guide::initializeDialogue() {
     dialogueLines[GameState::FIGURES_REVEALED].push_back("The figures... they are my collection of past 'worthy' individuals, 'saved' at their moment of purest empathy.");
     dialogueLines[GameState::FINAL_CONFRONTATION_IMMINENT].push_back("You, my friend, have shown such profound compassion. It is time for you to join them, to be kept perfect, forever.");
 
+    dialogueLines[GameState::ENDING_NOT_WORTHY].push_back("Go then... flee back to your decaying world. Some souls... simply aren't worth preserving.");
+    
+    dialogueLines[GameState::ENDING_BAD_VICTIM].push_back("Such a perfect specimen for my collection.");
 
 }
 

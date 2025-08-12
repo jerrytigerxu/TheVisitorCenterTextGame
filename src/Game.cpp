@@ -42,7 +42,7 @@ void Game::setupRoomsAndExits() {
     allRooms.push_back(std::make_unique<Room>("main_hall", "Main Hall", "A large, dusty main hall stretches before you. Lifelike figures stand in silent watch from shadowy alcoves. An older man, the Guide, is here. He eyes you curiously. A small, ornate music box sits on a high shelf."));
     allRooms.push_back(std::make_unique<Room>("storage_room", "Storage Room", "A cluttered storage area, filled with forgotten supplies and cobwebs. It smells of dust and decay."));
     allRooms.push_back(std::make_unique<Room>("office", "Office", "An old, neglected office. A large wooden desk sits in the center, covered in yellowed papers. There's a filing cabinet in the corner."));
-    allRooms.push_back(std::make_unique<Room>("crisis_room", "West Wing Corridor", "A dim corridor in what seems to be a less-used part of the center. The Guide mentioned investigating a noise from this direction. It feels colder here.")); 
+    allRooms.push_back(std::make_unique<Room>("west_wing", "West Wing Corridor", "A dim corridor in what seems to be a less-used part of the center. The Guide mentioned investigating a noise from this direction. It feels colder here.")); 
     allRooms.push_back(std::make_unique<Room>("reveal_spot", "Main Hall - Collection Display", "You are back in the Main Hall. The Guide stands near one of the alcoves, a strange calm about him. The figures seem more prominent now."));
 
     // Get raw pointers for exits 
@@ -51,7 +51,7 @@ void Game::setupRoomsAndExits() {
     Room* hall = findRoomById("main_hall");
     Room* storage = findRoomById("storage_room");
     Room* office = findRoomById("office");
-    Room* crisis = findRoomById("crisis_room"); 
+    Room* west_wing = findRoomById("west_wing"); 
 
     // Define exits with hyphenated keys
     if (car && entrance) car->addExit("enter-center", entrance); 
@@ -59,15 +59,15 @@ void Game::setupRoomsAndExits() {
         entrance->addExit("enter", hall); // "enter" can remain if it's a single word action into the hall
         entrance->addExit("leave-center", car); // Or just "leave" if context is clear
     }
-    if (hall && storage && office && crisis && entrance) {
+    if (hall && storage && office && west_wing && entrance) {
         hall->addExit("storage", storage); // Assuming "storage" is a direct, single-word exit
         hall->addExit("office", office);   // Assuming "office" is a direct, single-word exit
-        hall->addExit("west-wing", crisis); 
+        hall->addExit("west-wing", west_wing); 
         hall->addExit("exit-center", entrance);
     }
     if (storage && hall) storage->addExit("hall", hall);
     if (office && hall) office->addExit("hall", hall);
-    if (crisis && hall) crisis->addExit("hall", hall); 
+    if (west_wing && hall) west_wing->addExit("hall", hall); 
 }
 
 // @brief Creates all initial items and places them in their respective rooms 
@@ -79,8 +79,13 @@ void Game::setupItems() {
     Room* storage = findRoomById("storage_room");
     if (storage) {
         storage->addItem(std::make_unique<Item>("gas_can", "Gas Can", "A red, slightly rusted gas can. It feels like it has some fuel in it. This looks like the first thing you'll need."));
+        
+    }
+
+    Room* west_wing = findRoomById("west_wing");
+    if (west_wing) {
         // Item 2: Spare Tire (Storage Room - will be gettable after Gas Can)
-        storage->addItem(std::make_unique<Item>("spare_tire", "Spare Tire", "A dusty but seemingly usable spare tire."));
+        west_wing->addItem(std::make_unique<Item>("spare_tire", "Spare Tire", "A dusty but seemingly usable spare tire."));
     }
 
     // Item 3: Oil Fluid (Office - will be gettable after Spare Tire)
@@ -139,7 +144,7 @@ void Game::setupInteractiveElements() {
 
     Room* west_wing = findRoomById("west_wing");
     if (west_wing) {
-        west_wing->addInteractiveElement(InteractiveElement("memorial_garden", {
+        west_wing->addInteractiveElement(InteractiveElement("garden", {
             "Thorny, overgrown vines choke the memorial stones in the garden area, obscuring them from view.",
             "The thorny vines have been trimmed back, revealing the names on the stones beneath."
         }));
@@ -264,7 +269,7 @@ void Game::transitionToState(GameState newState) {
             enterCutscene();
             typeOut("\nWith the sounds of the attack echoing from the other room, your mind races. Your mother... waiting.");
             typeOut("But you caused this. You feel the weight of your mistake, the chilling belief that you have doomed him.");
-            typeOut("You have all the parts to fix your car. Your choice is stark and immediate: 'leave' or 'help'.");
+            typeOut("You have all the parts to fix your car. Your choice is stark and immediate: will you 'leave' or 'assist' him?");
             exitCutscene();
             break;
 
@@ -445,7 +450,7 @@ void Game::processInput(const std::string& rawInput) {
         handleOrganizeCommand(words);
     } else if (command == "trim") {
         handleTrimCommand(words);
-    } else if (command == "leave" || command == "help") { // Simplified choice commands
+    } else if (command == "leave" || command == "assist") { // Simplified choice commands
         if (currentGameState == GameState::CHOICE_POINT_LEAVE_OR_HELP) {
              handleChooseCommand({command}); // Pass the command directly
         } else {
@@ -491,11 +496,11 @@ void Game::handleGoCommand(const std::vector<std::string>& words) {
         std::cout << "The Guide has not unlocked that door for you yet. It's locked." << std::endl;
         return; 
     }
-    if (destination_key == "west" && currentGameState < GameState::AWAITING_TASK_3) {
+    if (destination_key == "west-wing" && currentGameState < GameState::AWAITING_TASK_3) {
         std::cout << "That part of the center is sealed off. The Guide hasn't opened it." << std::endl;
         return;
     }
-    if (destination_key == "office" && currentGameState < GameState::AWAITING_TASK_4) {
+    if (destination_key == "office" && currentGameState < GameState::TASK_3_COMPLETE_FALSE_HOPE) {
         std::cout << "The Guide's office is securely locked." << std::endl;
         return;
     }
@@ -511,7 +516,7 @@ void Game::handleGoCommand(const std::vector<std::string>& words) {
                 if (figures && figures->currentState == 0) {
                     figures->advanceState();
                     enterCutscene();
-                    typeOut("You re-enter the main hall. A chill crawls up your spine. Something feels... wrong.");
+                    typeOut("You re-enter the main hall. A chill crawls up your spine. Something feels... wrong. The figures that were originally facing forward are suddenly looking directly at you!");
                     typeOut("(My heart is pounding. Did... did they just move? No. It's just my mind playing tricks on me. It has to be.)");
                     exitCutscene();
                 }
@@ -632,7 +637,7 @@ void Game::handleTalkCommand(const std::vector<std::string>& words) {
             if (currentGameState == GameState::TASK_2_COMPLETE) {
                 enterCutscene();
                 typeOut("--- " + guide.name + " ---", false);
-                typeOut("You saw it too, didn't you? The figures moving... It's getting worse. The spirits are more agitated than ever. There is one final act. A memorial garden in the West Wing has become overgrown. Tending to it might be the show of respect we need to finally calm them. The oil fluid you need is in my office. Please, this might be our last chance.", true);
+                typeOut("You saw it too, didn't you? The figures moving... It's getting worse. The spirits are more agitated than ever. There is one final act. A memorial garden in the West Wing has become overgrown. If you 'trim' it, that might be the show of respect we need to finally calm them. The oil fluid you need is in my office. Please, this might be our last chance.", true);
                 exitCutscene();
                 transitionToState(GameState::AWAITING_TASK_3);
                 return;
@@ -661,7 +666,7 @@ void Game::handleTalkCommand(const std::vector<std::string>& words) {
             
             // Special player thought for intro
             if (currentGameState == GameState::AWAITING_TASK_1) {
-                typeOut("(A thought crosses your mind: This man is clearly unwell... but he's my only hope. I'll play along.)");
+                typeOut("(You think to yourself: This is ridiculous. What kind of superstitious hocus-pocus is this? Whatever. I have no time to argue with him.)");
             }
 
             exitCutscene();
@@ -676,6 +681,12 @@ void Game::handleTalkCommand(const std::vector<std::string>& words) {
 }
 
 void Game::handleHelpCommand(const std::vector<std::string>& words) {
+    if (currentGameState == GameState::CHOICE_POINT_LEAVE_OR_HELP) {
+        std::cout << "\n--- Help ---" << std::endl;
+        std::cout << "The choice is yours. You can 'leave' to save yourself, or you can be a good person and 'assist' me." << std::endl;
+        std::cout << "------------------------------------------" << std::endl;
+        return;
+    }
     if (words.size() > 1) {
         guide.provideHelp(words[1], currentGameState);
     } else {
@@ -727,19 +738,19 @@ void Game::handleChooseCommand(const std::vector<std::string>& words) {
         return;
     }
     if (words.empty()) {
-        std::cout << "Choose what? ('leave' or 'help')" << std::endl;
+        std::cout << "Choose what? ('leave' or 'assist')" << std::endl;
         return;
     }
     std::string choice = words[0];
     if (choice == "leave") {
         transitionToState(GameState::ENDING_NOT_WORTHY);
-    } else if (choice == "help") {
+    } else if (choice == "assist") {
         enterCutscene();
-        typeOut("Overcome with guilt, you decide you can't leave him. You have to help. You remember seeing a First Aid Kit in the office.");
+        typeOut("Overcome with guilt, you decide you can't leave him. You have to do something. You remember seeing a First Aid Kit in the office.");
         exitCutscene();
         transitionToState(GameState::PLAYER_CHOOSES_HELP_SEARCH_MEDKIT);
     } else {
-        std::cout << "That's not a valid choice here. Try 'leave' or 'help'." << std::endl;
+        std::cout << "That's not a valid choice here. Try 'leave' or 'assist'." << std::endl;
     }
 }
 
@@ -801,19 +812,19 @@ void Game::handleOrganizeCommand(const std::vector<std::string>& words) {
 }
 
 void Game::handleTrimCommand(const std::vector<std::string>& words) {
-    if (words.size() < 2 || words[1] != "overgrowth") {
-        std::cout << "Trim what? (Perhaps 'trim overgrowth'?)" << std::endl;
+    if (words.size() < 2 || words[1] != "garden") {
+        std::cout << "Trim what? (Perhaps 'trim garden'?)" << std::endl;
         return;
     }
     if (player.currentLocation->id != "west_wing") {
-        std::cout << "There is no overgrowth to trim here." << std::endl;
+        std::cout << "There is no garden to trim here." << std::endl;
         return; 
     }
     if (currentGameState == GameState::AWAITING_TASK_3) {
         if (!player.hasTrimmedGarden) {
             player.hasTrimmedGarden = true;
-            InteractiveElement* overgrowth = player.currentLocation->getInteractiveElement("overgrowth");
-            if (overgrowth) overgrowth->advanceState();
+            InteractiveElement* garden = player.currentLocation->getInteractiveElement("garden");
+            if (garden) garden->advanceState();
             
             enterCutscene();
             typeOut("You carefully trim back the thorny vines, revealing the names on the memorial stones. A profound sadness seems to lift from the area.");
@@ -821,7 +832,7 @@ void Game::handleTrimCommand(const std::vector<std::string>& words) {
             exitCutscene();
             transitionToState(GameState::TASK_3_COMPLETE_FALSE_HOPE);
         } else {
-            std::cout << "You've already trimmed the overgrowth." << std::endl;
+            std::cout << "You've already trimmed the garden." << std::endl;
         }
     } else {
         std::cout << "That doesn't seem necessary right now." << std::endl; 
