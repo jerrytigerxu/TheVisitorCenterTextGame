@@ -250,9 +250,8 @@ void Game::transitionToState(GameState newState) {
                 if (musicBox) musicBox->advanceState();
 
                 typeOut("\n--- " + guide.name + " ---", false);
-                typeOut("He flinches at the sound, his face pale. 'A good sign,' he whispers, though he sounds anything but convinced. 'The spirits... they noticed. I can now unlock the storage room for you. The gas can should be in there.'");
+                typeOut("He flinches at the sound, his face pale. 'A good sign,' he whispers, though he sounds anything but convinced. 'The spirits... they noticed. The storage room should be unlocked now. The gas can should be in there.'");
                 exitCutscene();
-                transitionToState(GameState::AWAITING_TASK_2);
             }
             break;
         case GameState::VIGIL_MISTAKE:
@@ -278,7 +277,7 @@ void Game::transitionToState(GameState newState) {
             guide.setFeigningInjury(false); 
             typeOut("You burst back into the main hall, First Aid Kit in hand, to find... silence.");
             typeOut("The Guide stands there, completely unharmed, a strange, calm smile on his face.");
-            typeOut("--- " + guide.name + " ---", false);
+            typeOut("\n--- " + guide.name + " ---", false);
             typeOut(guide.getDialogue(currentGameState), true);
             exitCutscene();
             transitionToState(GameState::FIGURES_REVEALED);
@@ -290,7 +289,7 @@ void Game::transitionToState(GameState newState) {
                 if (InteractiveElement* figures = player.currentLocation->getInteractiveElement("figures")) figures->advanceState(3);
             }
             typeOut("He gestures to the figures, their true nature now horrifyingly apparent in the dim light.");
-            typeOut("--- " + guide.name + " ---", false);
+            typeOut("\n--- " + guide.name + " ---", false);
             typeOut(guide.getDialogue(currentGameState), true);
             exitCutscene();
             transitionToState(GameState::FINAL_CONFRONTATION_IMMINENT);
@@ -298,9 +297,20 @@ void Game::transitionToState(GameState newState) {
 
         case GameState::FINAL_CONFRONTATION_IMMINENT:
             enterCutscene();
-            typeOut("--- " + guide.name + " ---", false);
+            typeOut("\n--- " + guide.name + " ---", false);
             typeOut(guide.getDialogue(currentGameState), true);
             typeOut("\nHe lunges towards you!");
+
+            // This logic automatically determines the ending
+            if (player.hasItem("surgical_item")) {
+                typeOut("In the split-second before he's on you, your mind races, and a memory flashes: the glint of metal from the office. The surgical instrument. It's your only chance.");
+                typeOut("You reach into your pocket, and your hand closes around the cool, hard steel of the surgical instrument in your pocket.");
+                transitionToState(GameState::ENDING_GOOD_ESCAPED);
+            } else {
+                typeOut("You desperately search your pockets for a weapon, but find nothing.");
+                transitionToState(GameState::ENDING_BAD_VICTIM);
+            }
+
             exitCutscene();
             break;
 
@@ -329,16 +339,16 @@ void Game::displayEnding(GameState endingType) {
             break;
         case GameState::ENDING_GOOD_ESCAPED:
             typeOut("\n--- ENDING 2: The Escape ---");
-            typeOut("With a desperate surge of adrenaline, you plunge the sharp surgical instrument forward!");
-            typeOut("The Guide recoils, a look of genuine shock on his face, giving you the single moment you need.");
+            typeOut("With a desperate surge of adrenaline, you plunge the sharp instrument into his chest!");
+            typeOut("The Guide recoils with a look of genuine shock, giving you the single moment you need.");
             typeOut("You scramble past him and out of the horrific gallery, not daring to look back, the image of his collection burned into your memory.");
             typeOut("Forever scarred, you carry the weight of Oakhaven, but also a desperate hope as you race towards your mother, a survivor.");
             break;
         case GameState::ENDING_BAD_VICTIM:
             typeOut("\n--- ENDING 3: The Collection ---");
-            typeOut("You fumble for a defense, but the Guide is too quick, his earlier frailty a masterful deception.");
+            typeOut("You fumble for a defense, but with his earlier frailty gone, the Guide is too quick.");
             typeOut("His triumphant smile is the last thing you see.");
-            typeOut("--- " + guide.name + " ---", false);
+            typeOut("\n--- " + guide.name + " ---", false);
             typeOut(guide.getDialogue(endingType), true);
             typeOut("The Oakhaven Visitor Center has claimed another exhibit. Far away, a hospital vigil continues, unaware of why their loved one never arrived.");
             break;
@@ -404,25 +414,6 @@ void Game::processInput(const std::string& rawInput) {
 
     std::string command = words[0];
     std::cout << "\n==================================================================\n";
-
-    if (currentGameState == GameState::FINAL_CONFRONTATION_IMMINENT) {
-        if (command == "use" && words.size() > 1 && words[1] == "surgical_item") {
-            if (player.hasItem("surgical_item")) {
-                transitionToState(GameState::ENDING_GOOD_ESCAPED);
-            } else {
-                enterCutscene();
-                typeOut("You don't have that!");
-                exitCutscene();
-                transitionToState(GameState::ENDING_BAD_VICTIM);
-            }
-        } else {
-            enterCutscene();
-            typeOut("You panic. Your action is ineffective as the Guide overwhelms you.");
-            exitCutscene();
-            transitionToState(GameState::ENDING_BAD_VICTIM);
-        }
-        return;
-    }
 
     if (command == "quit") {
         std::cout << "Exiting game." << std::endl;
@@ -492,12 +483,12 @@ void Game::handleGoCommand(const std::vector<std::string>& words) {
     std::string destination_key = words[1];
 
     // Room Unlocking Logic
-    if (destination_key == "storage" && currentGameState < GameState::AWAITING_TASK_2) {
-        std::cout << "The Guide has not unlocked that door for you yet. It's locked." << std::endl;
+    if (destination_key == "storage" && currentGameState < GameState::TASK_1_COMPLETE) {
+        std::cout << "The door is securely locked." << std::endl;
         return; 
     }
     if (destination_key == "west-wing" && currentGameState < GameState::AWAITING_TASK_3) {
-        std::cout << "That part of the center is sealed off. The Guide hasn't opened it." << std::endl;
+        std::cout << "That part of the center is sealed off." << std::endl;
         return;
     }
     if (destination_key == "office" && currentGameState < GameState::TASK_3_COMPLETE_FALSE_HOPE) {
@@ -594,6 +585,13 @@ void Game::handleGetCommand(const std::vector<std::string>& words) {
     if (player.currentLocation && player.currentLocation->getItem(itemId)) {
         std::unique_ptr<Item> item = player.currentLocation->removeItem(itemId);
         
+        if (item->id == "gas_can" && currentGameState == GameState::TASK_1_COMPLETE) {
+            enterCutscene();
+            typeOut("You found the gas can. Now that you have the first part for your car, you should talk to the Guide to see what's next.");
+            exitCutscene();
+            transitionToState(GameState::AWAITING_TASK_2); // Prepares the game for the next task's dialogue.
+        }
+
         if (item->id == "oil_fluid" && !surgicalItemSpawned) {
              Room* officeRoom = findRoomById("office");
              if(officeRoom) {
@@ -605,7 +603,7 @@ void Game::handleGetCommand(const std::vector<std::string>& words) {
              }
         }
         
-        if(item->id == "first_aid_kit" && currentGameState == GameState::CHOICE_POINT_LEAVE_OR_HELP) {
+        if(item->id == "first_aid_kit" && currentGameState == GameState::PLAYER_CHOOSES_HELP_SEARCH_MEDKIT) {
             transitionToState(GameState::PLAYER_FOUND_MEDKIT);
             enterCutscene();
             typeOut("You have the First Aid Kit. You should return to the Guide in the main hall.");
@@ -626,14 +624,6 @@ void Game::handleTalkCommand(const std::vector<std::string>& words) {
     if ((words.size() > 2 && (words[1] == "to" || words[1] == "with") && words[2] == "guide") ||
         (words.size() > 1 && words[1] == "guide")) {
         if (player.currentLocation && player.currentLocation->id == "main_hall") {
-            if (currentGameState == GameState::TASK_1_COMPLETE) {
-                enterCutscene();
-                typeOut("--- " + guide.name + " ---", false);
-                typeOut("Thank you. I... I can feel their anger lessening slightly. As promised, I have unlocked the storage room. The gas can should be in there. But... they are still not satisfied. The archives in that room... a place of history and order, has fallen into disarray. They hate chaos. If you could organize the scattered papers, it would soothe them further. This act of respect should grant us passage to the West Wing, where the spare tire is kept.", true);
-                exitCutscene();
-                transitionToState(GameState::AWAITING_TASK_2);
-                return;
-            }
             if (currentGameState == GameState::TASK_2_COMPLETE) {
                 enterCutscene();
                 typeOut("--- " + guide.name + " ---", false);
@@ -646,7 +636,7 @@ void Game::handleTalkCommand(const std::vector<std::string>& words) {
             if (currentGameState == GameState::TASK_3_COMPLETE_FALSE_HOPE) {
                 enterCutscene();
                 typeOut("--- " + guide.name + " ---", false);
-                typeOut("It's quiet... too quiet. I think... I think we've done it. The air feels lighter. Thank you. Truly. As promised, my office is unlocked. The oil fluid is in there. Get it, and you can finally leave this dreadful place.", true);
+                typeOut("It's quiet... too quiet. I think... I think we've done it. The air feels lighter. Thank you. Truly. My office is now unlocked. The oil fluid is in there. Get it, and you can finally leave this dreadful place.", true);
                 typeOut("(A wave of relief washes over you. It's finally over. You just need to get the last part and you can go home.)");
                 exitCutscene();
                 transitionToState(GameState::MENACING_TABLEAU); // Set up the next trigger
