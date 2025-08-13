@@ -448,27 +448,6 @@ void Game::processInput(const std::string& rawInput) {
             std::cout << "You can't do that right now." << std::endl;
         }
     }
-    // Developer / Debug commands
-    else if (command == "dbg_setstate" && words.size() > 1) { // Debug command
-        try {
-            int state_val = std::stoi(words[1]);
-            transitionToState(static_cast<GameState>(state_val));
-            std::cout << "[Debug] State set to " << words[1] << std::endl;
-        } catch (const std::exception& e) {
-            std::cout << "[Debug] Invalid state value." << std::endl;
-        }
-    } else if (command == "dbg_playeritems"){ // Debug command
-        player.pickUpItem(std::make_unique<Item>("gas_can", "Gas Can (Debug)", "Debug Gas"));
-        player.pickUpItem(std::make_unique<Item>("spare_tire", "Spare Tire (Debug)", "Debug Tire"));
-        player.pickUpItem(std::make_unique<Item>("oil_fluid", "Oil Fluid (Debug)", "Debug Oil"));
-        if (!player.hasItem("surgical_item")) {
-            player.pickUpItem(std::make_unique<Item>("surgical_item", "Surgical Instrument (Debug)", "A debug surgical tool."));
-        }
-         if (!player.hasItem("first_aid_kit")) { 
-            player.pickUpItem(std::make_unique<Item>("first_aid_kit", "First Aid Kit (Debug)", "A debug first aid kit."));
-        }
-        player.showInventory();
-    }
      else {
         std::cout << "Unknown command. Type 'help' for options." << std::endl;
     }
